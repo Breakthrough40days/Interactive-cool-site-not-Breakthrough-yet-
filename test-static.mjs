@@ -49,3 +49,8 @@ if(!app.includes("hypothesisCandidates")||!app.includes("event('alternatives'"))
 if(!app.includes("priorLast")||!app.includes("capability_failure"))fail('cross-visit decay or permission recovery missing');
 if(!app.includes("orb.spin")||!app.includes("orb.weight")||!app.includes("orb.sticky")||!app.includes("orb.angle"))fail('advanced object material physics missing');
 if(!app.includes("setAttribute('data-phase'")||!app.includes("OPENING THE ROOM"))fail('experience-stage focus/startup feedback missing');
+
+if(!html.includes('@supabase/supabase-js@2')||!html.includes('roomLive')||!app.includes("client.channel('impossible-room:'")||!app.includes("event:'throw'"))fail('cross-device live physics missing');
+if(!html.includes('roomEvidence')||!html.includes('roomForgetTheory')||!app.includes('forget_theory'))fail('evidence or granular memory controls missing');
+if(!app.includes("mind.intent")||!app.includes("inferIntent")||!app.includes("repeatCount"))fail('visitor intent/repetition detection missing');
+if(!app.includes("orb.hidden=true")||!app.includes("INVISIBLE OBJECT"))fail('invisible-object encounter missing');
