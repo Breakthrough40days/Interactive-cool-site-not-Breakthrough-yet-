@@ -107,10 +107,9 @@ function initBody(){
    let palm={x:0,y:0};palmIds.forEach(i=>{palm.x+=pts[i].x;palm.y+=pts[i].y});palm.x/=palmIds.length;palm.y/=palmIds.length;
    const handSize=Math.max(45,Math.hypot(pts[5].x-pts[17].x,pts[5].y-pts[17].y)*1.65);
    const tipSpread=tipIds.slice(1).reduce((s,i)=>s+Math.hypot(pts[i].x-palm.x,pts[i].y-palm.y),0)/4;
-   const pinchDist=Math.hypot(pts[4].x-pts[8].x,pts[4].y-pts[8].y),pinching=pinchDist<handSize*.32;
-   const fScore=fistScore(pts),closed=fScore>=.72||(tipSpread<handSize*.64&&fScore>=.5);
-   let old=handStates[index]||{x:palm.x,y:palm.y,vx:0,vy:0,closed:false,caught:[]};
-   old.vx=(palm.x-old.x)*.7+old.vx*.3;old.vy=(palm.y-old.y)*.7+old.vy*.3;old.x=palm.x;old.y=palm.y;old.size=handSize;old.pts=pts;old.pinchX=(pts[4].x+pts[8].x)/2;old.pinchY=(pts[4].y+pts[8].y)/2;old.pinching=pinching;
+   const pinchDist=Math.hypot(pts[4].x-pts[8].x,pts[4].y-pts[8].y);let old=handStates[index]||{x:palm.x,y:palm.y,vx:0,vy:0,closed:false,caught:[]};const pinching=old.wasPinching?pinchDist<handSize*.39:pinchDist<handSize*.29;
+   const fScore=fistScore(pts),closed=old.closed?fScore>=.48:(fScore>=.72||(tipSpread<handSize*.64&&fScore>=.5));
+   old.vx=(palm.x-old.x)*.55+old.vx*.45;old.vy=(palm.y-old.y)*.55+old.vy*.45;let openness=clamp((tipSpread/handSize-.45)/.75,0,1);old.cup=clamp((1-openness)*.65+(1-fScore)*.35,0,1);old.x=palm.x;old.y=palm.y;old.size=handSize;old.pts=pts;old.pinchX=(pts[4].x+pts[8].x)/2;old.pinchY=(pts[4].y+pts[8].y)/2;old.pinching=pinching;
    if(closed&&!old.closed){let caught=0;for(const p of particles){if(p.held==null&&Math.hypot(p.x-palm.x,p.y-palm.y)<handSize*.85){p.held=index;p.ox=p.x-palm.x;p.oy=p.y-palm.y;old.caught.push(p);caught++}}if(caught){flash('GRABBED '+caught+' PARTICLES')}}
    if(!closed&&old.closed){if(Math.hypot(old.vx,old.vy)>18)gpuMatter?.burst(Math.min(.9,Math.hypot(old.vx,old.vy)/55));for(const p of old.caught){if(p.held===index){p.held=null;p.vx=old.vx*.65+rnd(1,-1);p.vy=old.vy*.65+rnd(1,-1)}}if(old.caught.length)flash('THROWN');old.caught=[]}
    if(pinching&&!old.wasPinching){let nearest=null,nd=handSize*.5;for(const p of particles){if(p.held==null){let d=Math.hypot(p.x-old.pinchX,p.y-old.pinchY);if(d<nd){nearest=p;nd=d}}}if(nearest){nearest.held=index;nearest.pinch=true;nearest.ox=0;nearest.oy=0;old.caught.push(nearest);flash('PINCHED ONE')}}
