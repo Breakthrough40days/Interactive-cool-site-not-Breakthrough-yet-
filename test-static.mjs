@@ -34,3 +34,8 @@ if(!app.includes('orb.stretch')||!app.includes('YOU TORE SOMETHING'))fail('two-h
 if(!app.includes('mind.discover')||!app.includes('rulesSeen'))fail('discovery engine missing');
 
 if(!app.includes('adaptDifficulty')||!app.includes('fingerprint'))fail('adaptive difficulty or behavioral fingerprint missing');
+
+if(!gpu.includes('Float32Array(32)')||!gpu.includes('imp:vec4f')||gpu.includes('a[24]=impulse'))fail('WebGPU uniform packing regression');
+if(!app.includes('safeJSON')||!app.includes('storeJSON')||!app.includes('document.hidden'))fail('runtime resilience guards missing');
+if(!app.includes('handFrames')||!app.includes('failedGrabs')||!app.includes('edgeVisits'))fail('embodied telemetry missing');
+if(!app.includes('AbortController')||!app.includes('6500'))fail('Room AI timeout missing');
