@@ -9,7 +9,8 @@
     "preview": "vite preview --host 0.0.0.0",
     "check": "node --check app.js && node --check gpu-matter.js",
     "validate": "npm run check && npm run build",
-    "smoke": "node smoke.mjs"
+    "smoke": "node smoke.mjs",
+    "test:runtime": "node smoke.mjs"
   },
   "dependencies": {
     "vite": "^7.1.7"
