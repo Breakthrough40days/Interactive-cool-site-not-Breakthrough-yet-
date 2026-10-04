@@ -56,3 +56,12 @@ if(!app.includes("mind.intent")||!app.includes("inferIntent")||!app.includes("re
 if(!app.includes("orb.hidden=true")||!app.includes("INVISIBLE OBJECT"))fail('invisible-object encounter missing');
 
 if(!app.includes('memory.metrics')||!app.includes('predictionAccuracy')||!app.includes('hesitations'))fail('session quality instrumentation missing');
+
+if(app.includes("function loop(){if(!run)return;choreograph()"))fail('Room choreography leaked into non-Room route');
+if(!app.includes("function loop(t){if(!run)return;choreograph()"))fail('Room choreography is not wired to Room loop');
+if(!app.includes("pendingPrediction")||!app.includes("performance.now()-mind.pendingPrediction.at>420"))fail('prediction is not scored against later movement');
+if(!app.includes("pinchOn*1.35")||!app.includes("tips,size:"))fail('pinch hysteresis or finger collision geometry missing');
+if(!app.includes("mind.material==='smoke'")||!app.includes("mind.material==='liquid'")||!app.includes("mind.material==='magnetic'"))fail('material suite missing');
+if(!app.includes("shadowIndependent")||!app.includes("futureSelf"))fail('independent shadow or future-self missing');
+if(!app.includes("deliberateTests")||!app.includes("mind.boredom"))fail('intent or boredom intelligence missing');
+if(!app.includes("GEN ${inheritedState?.generation||1}")||!app.includes("<polyline points="))fail('lineage or movement-trace artifact missing');
