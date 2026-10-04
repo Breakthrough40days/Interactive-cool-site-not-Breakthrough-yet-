@@ -64,3 +64,22 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
 #bodyCanvas{z-index:3}#bodyGPU{z-index:2}#bodyForeground{z-index:4}
 #roomReplay{border-color:rgba(255,255,255,.22)}
 @media(max-width:800px){#bodyVideo,#bodyForeground{inset:62px 0 0;height:calc(100% - 62px)}}
+
+/* Experience polish */
+.roomActions{max-width:min(680px,88vw);justify-content:flex-end}
+.roomActions button{transition:transform .18s,border-color .18s,background .18s,color .18s}
+.roomActions button:hover{transform:translateY(-1px);border-color:rgba(242,184,75,.55);color:#fff}
+.roomActions button:active{transform:translateY(1px)}
+#roomMind{box-shadow:0 18px 70px rgba(0,0,0,.28);transition:opacity .3s,transform .3s,border-color .3s}
+#roomThought{min-height:42px}
+#roomConfidence{font-variant-numeric:tabular-nums}
+#roomTranscript{mask-image:linear-gradient(to bottom,#000 65%,transparent)}
+#roomSay::placeholder{color:rgba(255,255,255,.3)}
+#roomSend:disabled,.roomActions button:disabled{opacity:.35;cursor:not-allowed}
+#roomForeground,#bodyForeground{filter:saturate(1.02) contrast(1.01)}
+#bodyForeground{opacity:.98}
+#roomVideo{opacity:.9;filter:brightness(1.12) contrast(1.02) saturate(1.02)}
+@media(max-width:1100px){#roomMind{width:min(330px,38vw)}.roomActions{max-width:58vw}}
+@media(max-width:760px){#roomMind{max-height:31vh;overflow:auto}.roomActions{max-width:42vw;max-height:24vh;overflow:auto}.roomActions button{padding:7px 9px}#roomMemory{bottom:3vh}.roomHUD>p:not(.eyebrow){display:none}}
+@media(max-height:650px){#roomMind{top:76px;padding:10px 12px}#roomTranscript{display:none}.roomActions{bottom:10px}#roomMemory{display:none}}
+@media(prefers-reduced-motion:reduce){#roomForeground,#bodyForeground{filter:none}.impact{display:none}}
