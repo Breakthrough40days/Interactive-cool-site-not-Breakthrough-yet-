@@ -24,3 +24,6 @@ nav{margin-left:auto;display:flex;gap:22px}nav a,#menu,.shareTop{color:#777d79;t
 body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-world="trails"] header{border-color:rgba(255,95,45,.18)}body[data-world="move"] header{mix-blend-mode:difference}body[data-world="future"] header{border-color:rgba(242,184,75,.2)}
 
 #diagnostics{display:none;position:fixed;z-index:190;left:12px;top:82px;gap:6px;padding:7px;background:rgba(0,0,0,.72);font:7px 'DM Mono';letter-spacing:.08em}#diagnostics.on{display:flex}#diagnostics span{padding:4px 6px;border:1px solid var(--line)}
+
+.progress40{width:min(470px,78vw);height:2px;background:rgba(255,255,255,.1);margin-top:18px;overflow:hidden}.progress40 i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8d6b2d,#f2b84b);transition:width .8s cubic-bezier(.22,.8,.22,1)}
+:focus-visible{outline:1px solid #f2b84b;outline-offset:5px}
