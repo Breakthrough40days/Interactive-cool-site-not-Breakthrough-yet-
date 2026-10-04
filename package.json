@@ -8,9 +8,13 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "check": "node --check app.js && node --check gpu-matter.js",
-    "validate": "npm run check && npm run build"
+    "validate": "npm run check && npm run build",
+    "smoke": "node smoke.mjs"
   },
   "dependencies": {
     "vite": "^7.1.7"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
   }
 }
