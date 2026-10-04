@@ -40,24 +40,21 @@ function initTrails(){
 }
 
 function initVoice(){
- const c=$('#voiceCanvas'),o=fit(c),ctx=o.ctx;let run=true,stream,ac,an,forms=[],grab=null,spoken=false,lastBirth=0,shock=0;
+ const c=$('#voiceCanvas'),o=fit(c),ctx=o.ctx;let run=true,stream,ac,an,forms=[],grab=null,lastBirth=0,shock=0,quiet=0,building=null;
  function point(e){let r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
  function pd(e){let p=point(e);grab=[...forms].reverse().find(f=>Math.hypot(f.x-p.x,f.y-p.y)<f.r*1.25)||null;if(grab)c.setPointerCapture?.(e.pointerId)}
- function pm(e){if(!grab)return;let p=point(e);grab.vx=(p.x-grab.x)*.16;grab.vy=(p.y-grab.y)*.16;grab.x=p.x;grab.y=p.y}
- function pu(){grab=null}
+ function pm(e){if(!grab)return;let p=point(e);grab.vx=(p.x-grab.x)*.2;grab.vy=(p.y-grab.y)*.2;grab.x=p.x;grab.y=p.y}
+ function pu(){if(grab&&Math.hypot(grab.vx,grab.vy)>5){shock=Math.min(1,Math.hypot(grab.vx,grab.vy)/18);navigator.vibrate?.(18)}grab=null}
  c.addEventListener('pointerdown',pd);c.addEventListener('pointermove',pm);c.addEventListener('pointerup',pu);
- $('#micBtn').onclick=async()=>{try{stream=await navigator.mediaDevices.getUserMedia({audio:true});ac=new (window.AudioContext||window.webkitAudioContext)();await ac.resume();an=ac.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.72;ac.createMediaStreamSource(stream).connect(an);$('#micBtn').textContent='SPEAK — LOUD OR SOFT';$('#micStatus').textContent='Your sound is now physical. Speak, then throw the forms.';flash('YOUR VOICE IS LIVE')}catch(e){$('#micStatus').textContent='Microphone blocked. You can still click the field to create matter.'}};
- c.addEventListener('dblclick',e=>{let p=point(e);forms.push(makeForm(p.x,p.y,.55,new Uint8Array(64).fill(120)))});
- function makeForm(x,y,e,a){return{x,y,r:32+e*105,vx:rnd(1.5,-1.5),vy:rnd(1.5,-1.5),rot:rnd(6.28),spin:rnd(.012,-.012),bins:Array.from({length:48},(_,i)=>(a[i*2]||100)/255),h:rnd(1),age:0}}
- function loop(t){
-  if(!run)return;ctx.fillStyle='rgba(5,7,6,.16)';ctx.fillRect(0,0,o.w,o.h);
-  if(an){let a=new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(a);let e=a.slice(0,180).reduce((s,n)=>s+n,0)/180/255;if(e>.075&&t-lastBirth>520){forms.push(makeForm(o.w*.72+rnd(80,-80),o.h*.5+rnd(120,-120),e,a));lastBirth=t;spoken=true;if(e>.32){shock=1;flash('THAT ONE HIT HARD')}}}
-  shock*=.94;
-  for(let i=0;i<forms.length;i++){let f=forms[i];f.age++;f.rot+=f.spin;if(f!==grab){f.x+=f.vx;f.y+=f.vy;f.vx*=.997;f.vy*=.997;if(f.x<f.r){f.x=f.r;f.vx=Math.abs(f.vx)}if(f.x>o.w-f.r){f.x=o.w-f.r;f.vx=-Math.abs(f.vx)}if(f.y<f.r){f.y=f.r;f.vy=Math.abs(f.vy)}if(f.y>o.h-f.r){f.y=o.h-f.r;f.vy=-Math.abs(f.vy)}}for(let j=i+1;j<forms.length;j++){let g=forms[j],dx=g.x-f.x,dy=g.y-f.y,d=Math.hypot(dx,dy)||1,m=(f.r+g.r)*.7;if(d<m){let k=(m-d)*.025;f.vx-=dx/d*k;f.vy-=dy/d*k;g.vx+=dx/d*k;g.vy+=dy/d*k}}
-   if(shock>.05){let dx=f.x-o.w*.72,dy=f.y-o.h*.5,d=Math.hypot(dx,dy)||1;f.vx+=dx/d*shock*.25;f.vy+=dy/d*shock*.25}
-   ctx.beginPath();f.bins.forEach((v,k)=>{let a=k/f.bins.length*Math.PI*2+f.rot,r=f.r*(.58+v*.75+Math.sin(t*.002+k)*.035),x=f.x+Math.cos(a)*r,y=f.y+Math.sin(a)*r;k?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();ctx.fillStyle='rgba(120,153,142,.075)';ctx.fill();ctx.strokeStyle=grab===f?'rgba(209,154,75,.95)':'rgba(238,232,217,.48)';ctx.lineWidth=grab===f?2:1;ctx.stroke();
-  }RAF=requestAnimationFrame(loop)
- }loop();cleanup=()=>{run=false;stream?.getTracks().forEach(t=>t.stop());ac?.close();c.onpointerdown=c.onpointermove=c.onpointerup=null}
+ $('#micBtn').onclick=async()=>{try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});ac=new (window.AudioContext||window.webkitAudioContext)();await ac.resume();an=ac.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.76;ac.createMediaStreamSource(stream).connect(an);$('#micBtn').textContent='SPEAK. MAKE SOMETHING.';$('#micStatus').textContent='YOUR SOUND IS BECOMING AN OBJECT. AUDIO IS NOT SAVED.';flash('YOUR VOICE IS LIVE')}catch{$('#micStatus').textContent='MICROPHONE BLOCKED. DOUBLE-TAP THE FIELD TO TRY THE PHYSICS.'}};
+ c.addEventListener('dblclick',e=>{let p=point(e);forms.push(makeForm(p.x,p.y,.45,new Uint8Array(96).fill(120)))});
+ function makeForm(x,y,e,a){return{x,y,r:24+e*92,targetR:32+e*120,vx:rnd(1,-1),vy:rnd(1,-1),rot:rnd(6.28),spin:rnd(.012,-.012),bins:Array.from({length:64},(_,i)=>(a[i*2]||80)/255),h:rnd(1),age:0,solid:false}}
+ function loop(t){if(!run)return;ctx.fillStyle='rgba(5,5,10,.18)';ctx.fillRect(0,0,o.w,o.h);
+  if(an){let a=new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(a);let e=a.slice(0,190).reduce((q,n)=>q+n,0)/190/255;if(e>.055){quiet=0;if(!building){building=makeForm(o.w*.72+rnd(30,-30),o.h*.5+rnd(50,-50),e,a);forms.push(building);lastBirth=t}else{building.targetR=Math.min(175,building.targetR+e*1.6);for(let i=0;i<building.bins.length;i++)building.bins[i]=building.bins[i]*.84+(a[i*2]||0)/255*.16}}else if(building&&++quiet>16){building.solid=true;building.spin*=1.8;building=null;quiet=0;flash('YOUR VOICE BECAME MATTER');navigator.vibrate?.([20,25,20])}}
+  shock*=.94;for(let i=0;i<forms.length;i++){let f=forms[i];f.age++;f.r+=(f.targetR-f.r)*.04;f.rot+=f.spin;if(f!==grab){f.x+=f.vx;f.y+=f.vy;f.vx*=.996;f.vy*=.996;if(f.x<f.r){f.x=f.r;f.vx=Math.abs(f.vx)}if(f.x>o.w-f.r){f.x=o.w-f.r;f.vx=-Math.abs(f.vx)}if(f.y<f.r){f.y=f.r;f.vy=Math.abs(f.vy)}if(f.y>o.h-f.r){f.y=o.h-f.r;f.vy=-Math.abs(f.vy)}}for(let j=i+1;j<forms.length;j++){let g=forms[j],dx=g.x-f.x,dy=g.y-f.y,d=Math.hypot(dx,dy)||1,m=(f.r+g.r)*.62;if(d<m){let k=(m-d)*.035;f.vx-=dx/d*k;f.vy-=dy/d*k;g.vx+=dx/d*k;g.vy+=dy/d*k;if(k>.7)shock=Math.max(shock,.35)}}
+   if(shock>.05){let dx=f.x-o.w*.5,dy=f.y-o.h*.5,d=Math.hypot(dx,dy)||1;f.vx+=dx/d*shock*.22;f.vy+=dy/d*shock*.22}
+   ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);ctx.beginPath();f.bins.forEach((v,k)=>{let a=k/f.bins.length*Math.PI*2,r=f.r*(.55+v*.7+Math.sin(t*.002+k)*.025),x=Math.cos(a)*r,y=Math.sin(a)*r;k?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();let grad=ctx.createRadialGradient(0,0,4,0,0,f.r*1.25);grad.addColorStop(0,grab===f?'rgba(206,180,255,.38)':'rgba(145,92,255,.22)');grad.addColorStop(1,'rgba(20,7,50,.02)');ctx.fillStyle=grad;ctx.fill();ctx.strokeStyle=grab===f?'rgba(225,205,255,.95)':f.solid?'rgba(174,135,255,.58)':'rgba(235,235,255,.35)';ctx.lineWidth=grab===f?2:1;ctx.stroke();ctx.restore()}
+  forms=forms.slice(-14);RAF=requestAnimationFrame(loop)}loop();cleanup=()=>{run=false;stream?.getTracks().forEach(t=>t.stop());ac?.close();c.removeEventListener('pointerdown',pd);c.removeEventListener('pointermove',pm);c.removeEventListener('pointerup',pu)}
 }
 
 function initMove(){
