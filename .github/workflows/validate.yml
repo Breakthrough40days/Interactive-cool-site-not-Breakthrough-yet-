@@ -19,6 +19,6 @@ jobs:
       - name: Static and production build
         run: npm run validate
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
       - name: Browser smoke test
         run: npm run smoke
