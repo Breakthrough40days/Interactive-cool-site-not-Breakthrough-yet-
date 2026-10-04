@@ -47,5 +47,5 @@ if(app.includes("safeJSON('impossible-room-v1')if")||app.includes("||nullif("))f
 
 if(!app.includes("hypothesisCandidates")||!app.includes("event('alternatives'"))fail('competing hypothesis engine missing');
 if(!app.includes("priorLast")||!app.includes("capability_failure"))fail('cross-visit decay or permission recovery missing');
-if(!app.includes("orb.spin")||!app.includes("orb.weight")||!app.includes("orb.sticky"))fail('advanced object material physics missing');
+if(!app.includes("orb.spin")||!app.includes("orb.weight")||!app.includes("orb.sticky")||!app.includes("orb.angle"))fail('advanced object material physics missing');
 if(!app.includes("setAttribute('data-phase'")||!app.includes("OPENING THE ROOM"))fail('experience-stage focus/startup feedback missing');
