@@ -76,19 +76,44 @@ function initMirror(){
 
 function initBody(){
  const v=$('#bodyVideo'),c=$('#bodyCanvas'),mc=$('#bodyMask'),o=fit(c),ctx=o.ctx,mx=mc.getContext('2d',{willReadFrequently:true});mc.width=160;mc.height=120;
- let run=true,stream,seg=null,mask=null,particles=[],mode='sand',lastSeg=0,pointer={x:o.w*.5,y:o.h*.5,on:false},tracking=false,attempted=false;
+ let run=true,stream,seg=null,handsModel=null,mask=null,particles=[],mode='sand',lastVision=0,pointer={x:o.w*.5,y:o.h*.5,on:false},bodyTracking=false,handStates=[],visionBusy=false;
+ const palmIds=[0,5,9,13,17],tipIds=[4,8,12,16,20];
  function solid(x,y){if(!mask||x<0||y<0||x>=o.w||y>=o.h)return false;let X=clamp(Math.floor(x/o.w*160),0,159),Y=clamp(Math.floor(y/o.h*120),0,119);return mask[(Y*160+X)*4+3]>90}
  function pm(e){let r=c.getBoundingClientRect();pointer={x:e.clientX-r.left,y:e.clientY-r.top,on:true}}function pl(){pointer.on=false}c.addEventListener('pointermove',pm);c.addEventListener('pointerleave',pl);
- async function begin(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});v.srcObject=stream;await v.play();$('#body').querySelector('.bodyIntro').classList.add('started');$('#bodyStatus').textContent='Camera live. Loading body tracking…';attempted=true;
-   if(window.SelfieSegmentation){try{seg=new SelfieSegmentation({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/'+f});seg.setOptions({modelSelection:1,selfieMode:true});seg.onResults(r=>{mx.clearRect(0,0,160,120);mx.save();mx.translate(160,0);mx.scale(-1,1);mx.drawImage(r.segmentationMask,0,0,160,120);mx.restore();mask=mx.getImageData(0,0,160,120).data;if(!tracking){tracking=true;flash('YOUR BODY IS NOW SOLID')}});await seg.send({image:v})}catch(e){seg=null}}
-   if(!seg){$('#bodyStatus').textContent='Body model unavailable. Camera + hand/mouse force-field fallback is active.';flash('FALLBACK PHYSICS ACTIVE')}
- }catch(e){$('#bodyStatus').textContent='Camera blocked. Move your mouse/finger through the material instead.';$('#body').querySelector('.bodyIntro').classList.add('started');flash('TOUCH PHYSICS ACTIVE')}}
+ function handFromLandmarks(lm,index){
+   const pts=lm.map(p=>({x:p.x*o.w,y:p.y*o.h}));
+   let palm={x:0,y:0};palmIds.forEach(i=>{palm.x+=pts[i].x;palm.y+=pts[i].y});palm.x/=palmIds.length;palm.y/=palmIds.length;
+   const handSize=Math.max(45,Math.hypot(pts[5].x-pts[17].x,pts[5].y-pts[17].y)*1.65);
+   const tipSpread=tipIds.slice(1).reduce((s,i)=>s+Math.hypot(pts[i].x-palm.x,pts[i].y-palm.y),0)/4;
+   const closed=tipSpread<handSize*.72;
+   let old=handStates[index]||{x:palm.x,y:palm.y,vx:0,vy:0,closed:false,caught:[]};
+   old.vx=(palm.x-old.x)*.7+old.vx*.3;old.vy=(palm.y-old.y)*.7+old.vy*.3;old.x=palm.x;old.y=palm.y;old.size=handSize;old.pts=pts;
+   if(closed&&!old.closed){let caught=0;for(const p of particles){if(p.held==null&&Math.hypot(p.x-palm.x,p.y-palm.y)<handSize*.85){p.held=index;p.ox=p.x-palm.x;p.oy=p.y-palm.y;old.caught.push(p);caught++}}if(caught){flash('GRABBED '+caught+' PARTICLES')}}
+   if(!closed&&old.closed){for(const p of old.caught){if(p.held===index){p.held=null;p.vx=old.vx*.65+rnd(1,-1);p.vy=old.vy*.65+rnd(1,-1)}}if(old.caught.length)flash('THROWN');old.caught=[]}
+   old.closed=closed;return old;
+ }
+ async function begin(){try{
+   stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});v.srcObject=stream;await v.play();$('#body').querySelector('.bodyIntro').classList.add('started');$('#bodyStatus').textContent='Camera live. Loading body + hand tracking…';
+   if(window.SelfieSegmentation){try{seg=new SelfieSegmentation({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/'+f});seg.setOptions({modelSelection:1,selfieMode:true});seg.onResults(r=>{mx.clearRect(0,0,160,120);mx.drawImage(r.segmentationMask,0,0,160,120);mask=mx.getImageData(0,0,160,120).data;if(!bodyTracking){bodyTracking=true;flash('YOUR BODY IS SOLID')}})}catch(e){seg=null}}
+   if(window.Hands){try{handsModel=new Hands({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/hands/'+f});handsModel.setOptions({maxNumHands:2,modelComplexity:1,minDetectionConfidence:.55,minTrackingConfidence:.55,selfieMode:true});handsModel.onResults(r=>{let next=[];(r.multiHandLandmarks||[]).forEach((lm,i)=>next[i]=handFromLandmarks(lm,i));for(let i=next.length;i<handStates.length;i++){let h=handStates[i];if(h?.caught?.length){for(const p of h.caught){p.held=null;p.vx=h.vx*.5;p.vy=h.vy*.5}}}handStates=next;if(next.length)$('#bodyStatus').textContent='Hands tracked. OPEN to scoop · CLOSE fist to grab · OPEN to throw.'})}catch(e){handsModel=null}}
+   if(!handsModel)$('#bodyStatus').textContent='Hand model unavailable. Body + mouse/finger force field still works.';
+ }catch(e){$('#bodyStatus').textContent='Camera blocked. Mouse/finger force field is active.';$('#body').querySelector('.bodyIntro').classList.add('started');flash('TOUCH PHYSICS ACTIVE')}}
  $('#bodyStart').onclick=begin;$$('[data-matter]').forEach(b=>b.onclick=()=>{mode=b.dataset.matter;$$('[data-matter]').forEach(x=>x.classList.toggle('on',x===b));flash(mode.toUpperCase())});
- function loop(t){if(!run)return;if(seg&&v.readyState>=2&&t-lastSeg>90){lastSeg=t;seg.send({image:v}).catch(()=>{seg=null})}ctx.fillStyle='rgba(3,5,4,.32)';ctx.fillRect(0,0,o.w,o.h);
-  if(v.readyState>=2){ctx.save();ctx.translate(o.w,0);ctx.scale(-1,1);ctx.globalAlpha=.24;ctx.filter='grayscale(1) contrast(1.35) brightness(.75)';ctx.drawImage(v,0,0,o.w,o.h);ctx.restore();ctx.filter='none';ctx.globalAlpha=1}
-  const max=innerWidth<700?6500:12000,n=mode==='storm'?55:mode==='light'?24:38;for(let k=0;k<n&&particles.length<max;k++)particles.push({x:Math.random()*o.w,y:-20-rnd(80),vx:rnd(mode==='storm'?6:.8,mode==='storm'?-6:-.8),vy:rnd(5,1),r:mode==='light'?rnd(2.6,1.2):rnd(2,.7),life:1});
-  for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.vy+=mode==='light'?.012:.075;let nx=p.x+p.vx,ny=p.y+p.vy,hit=solid(nx,ny);if(pointer.on){let dx=nx-pointer.x,dy=ny-pointer.y,d=Math.hypot(dx,dy)||1;if(d<110){let f=(1-d/110)*2.4;p.vx+=dx/d*f;p.vy+=dy/d*f;hit=true}}
-   if(hit){let L=solid(nx-7,ny),R=solid(nx+7,ny);if(!L)p.vx-=.55;else if(!R)p.vx+=.55;else{p.vx+=rnd(.7,-.7);p.vy=-Math.abs(p.vy)*.18}}else{p.x=nx;p.y=ny}if(p.y>o.h+30||p.x<-50||p.x>o.w+50){particles.splice(i,1);continue}let col=mode==='storm'?'209,154,75':mode==='light'?'225,239,233':'226,192,124';ctx.fillStyle='rgba('+col+',.78)';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}
-  RAF=requestAnimationFrame(loop)}loop();cleanup=()=>{run=false;stream?.getTracks().forEach(t=>t.stop());v.srcObject=null;c.removeEventListener('pointermove',pm);c.removeEventListener('pointerleave',pl)}
+ async function vision(t){if(visionBusy||v.readyState<2||t-lastVision<75)return;visionBusy=true;lastVision=t;try{if(seg)await seg.send({image:v});if(handsModel)await handsModel.send({image:v})}catch(e){}visionBusy=false}
+ function drawHand(h){if(!h?.pts)return;ctx.save();ctx.strokeStyle=h.closed?'rgba(209,154,75,.95)':'rgba(225,239,233,.55)';ctx.fillStyle=h.closed?'rgba(209,154,75,.13)':'rgba(120,153,142,.08)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(h.x,h.y,h.size*.72,0,Math.PI*2);ctx.fill();ctx.stroke();for(const id of tipIds){let q=h.pts[id];ctx.beginPath();ctx.arc(q.x,q.y,4,0,7);ctx.fillStyle=h.closed?'#d19a4b':'#dfe9e4';ctx.fill()}ctx.font='9px DM Mono';ctx.fillStyle=h.closed?'#d19a4b':'#dfe9e4';ctx.fillText(h.closed?'GRABBING':'OPEN',h.x-24,h.y-h.size*.86);ctx.restore()}
+ function loop(t){if(!run)return;vision(t);ctx.fillStyle='rgba(3,5,4,.32)';ctx.fillRect(0,0,o.w,o.h);
+   if(v.readyState>=2){ctx.save();ctx.translate(o.w,0);ctx.scale(-1,1);ctx.globalAlpha=.24;ctx.filter='grayscale(1) contrast(1.35) brightness(.75)';ctx.drawImage(v,0,0,o.w,o.h);ctx.restore();ctx.filter='none';ctx.globalAlpha=1}
+   const max=innerWidth<700?6500:12000,n=mode==='storm'?55:mode==='light'?24:38;for(let k=0;k<n&&particles.length<max;k++)particles.push({x:Math.random()*o.w,y:-20-rnd(80),vx:rnd(mode==='storm'?6:.8,mode==='storm'?-6:-.8),vy:rnd(5,1),r:mode==='light'?rnd(2.6,1.2):rnd(2,.7),held:null});
+   for(let i=particles.length-1;i>=0;i--){let p=particles[i];
+     if(p.held!=null&&handStates[p.held]){let h=handStates[p.held];p.x=h.x+p.ox*.34;p.y=h.y+p.oy*.34;p.vx=h.vx;p.vy=h.vy}
+     else{p.vy+=mode==='light'?.012:.075;let nx=p.x+p.vx,ny=p.y+p.vy,hit=solid(nx,ny);
+       for(const h of handStates){if(!h)continue;let dx=nx-h.x,dy=ny-h.y,d=Math.hypot(dx,dy)||1;if(d<h.size*.92&&!h.closed){let f=(1-d/(h.size*.92))*1.6;p.vx+=dx/d*f+h.vx*.07;p.vy+=dy/d*f+h.vy*.07;hit=true}}
+       if(pointer.on){let dx=nx-pointer.x,dy=ny-pointer.y,d=Math.hypot(dx,dy)||1;if(d<100){let f=(1-d/100)*2;p.vx+=dx/d*f;p.vy+=dy/d*f;hit=true}}
+       if(hit){let L=solid(nx-7,ny),R=solid(nx+7,ny);if(!L)p.vx-=.45;else if(!R)p.vx+=.45;else{p.vx+=rnd(.6,-.6);p.vy=-Math.abs(p.vy)*.14}}else{p.x=nx;p.y=ny}
+     }
+     if(p.y>o.h+40||p.x<-80||p.x>o.w+80){particles.splice(i,1);continue}let col=p.held!=null?'255,218,126':mode==='storm'?'209,154,75':mode==='light'?'225,239,233':'226,192,124';ctx.fillStyle='rgba('+col+',.82)';ctx.beginPath();ctx.arc(p.x,p.y,p.held!=null?p.r*1.45:p.r,0,7);ctx.fill()
+   }
+   handStates.forEach(drawHand);RAF=requestAnimationFrame(loop)
+ }loop();cleanup=()=>{run=false;stream?.getTracks().forEach(t=>t.stop());v.srcObject=null;c.removeEventListener('pointermove',pm);c.removeEventListener('pointerleave',pl)}
 }
 route();
