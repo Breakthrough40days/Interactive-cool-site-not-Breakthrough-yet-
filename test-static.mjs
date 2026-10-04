@@ -10,4 +10,7 @@ if(!html.includes('@mediapipe/hands/hands.js')||!html.includes('@mediapipe/selfi
 if(!gpu.includes('device.lost')||!gpu.includes('cancelAnimationFrame(raf)'))fail('GPU lifecycle guard missing');
 if(!app.includes('CLAP SHOCKWAVE')||!app.includes('PALM WIND'))fail('BODY gesture physics missing');
 if(!app.includes('bt-artifact-seed')||!app.includes('totals:{'))fail('artifact lineage missing');
+if(!app.includes("impossible-room-v1")||!app.includes("THE ROOM REMEMBERS YOU"))fail('Room memory missing');
+if(!app.includes("memory.learned.push('THROW')")||!app.includes("memory.learned.push('PINCH')"))fail('Room learned gestures missing');
+if(!html.includes('id="roomPass"')||!html.includes('id="roomMemory"'))fail('Room lineage UI missing');
 console.log('Static invariants OK');
