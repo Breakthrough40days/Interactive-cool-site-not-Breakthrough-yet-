@@ -17,3 +17,5 @@ if(!app.includes("YOU CAUGHT IT")||!app.includes("past.push")||!app.includes("YO
 if(!app.includes("YOUR VOICE MADE SOMETHING")||!app.includes("VOICEBORN")||!app.includes("temper.fear")||!app.includes("temper.trust"))fail('Room voice species or behavioral memory missing');
 if(!html.includes('id="roomPass"')||!html.includes('id="roomMemory"'))fail('Room lineage UI missing');
 console.log('Static invariants OK');
+
+if(!html.includes('roomMind')||!app.includes('runHypothesis')||!app.includes('Correction accepted')||!app.includes('CONFIDENCE '))fail('Room reasoning feedback loop missing');
