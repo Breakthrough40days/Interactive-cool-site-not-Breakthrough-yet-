@@ -6,7 +6,7 @@ const browser=await chromium.launch({headless:true,args:['--enable-unsafe-webgpu
 const page=await browser.newPage({viewport:{width:1440,height:900}});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push('console: '+m.text())});
 await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});if(!(await page.evaluate(()=>typeof window.SelfieSegmentation==='function'&&typeof window.Hands==='function')))throw new Error('MediaPipe globals failed to load');
-for(const id of ['home','trails','voice','move','future','mirror','body']){
+for(const id of ['room','home','trails','voice','move','future','mirror','body']){
   await page.evaluate(id=>location.hash=id,id);await wait(300);
   const active=await page.locator('#'+id).evaluate(el=>el.classList.contains('active'));if(!active)throw new Error(id+' did not activate');
 }
