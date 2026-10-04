@@ -23,3 +23,6 @@ if(!html.includes('roomMind')||!app.includes('runHypothesis')||!app.includes('Co
 if(!app.includes("mind.rule==='resist'")||!app.includes("mind.rule==='patience'")||!app.includes("event('hypothesis'")||!app.includes("events:mind.events.slice(-30)"))fail('Room hypotheses do not control physics or persist evidence');
 
 if(!app.includes('scoreTest')||!app.includes("event('test_result'")||!app.includes("key:'dominant'")||!app.includes("mind.rule==='opposite'"))fail('Room evidence scoring or adaptive spatial test missing');
+
+if(!html.includes('roomSay')||!html.includes('roomReveal')||!html.includes('roomSurprise'))fail('Room conversation/reveal/prediction UI missing');
+if(!app.includes("fetch('/api/room-mind'")||!app.includes('compileExperiment')||!app.includes('roomProfile')||!app.includes('makeArtifact'))fail('Room AI contract/compiler/profile/artifact missing');
