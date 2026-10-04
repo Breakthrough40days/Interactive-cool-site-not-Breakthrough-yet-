@@ -11,8 +11,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - run: npm install
+      - name: Install browser test runtime
+        run: npx playwright@1.55.0 install --with-deps chromium
       - run: npm run validate
       - name: Verify discovery files
         run: |
@@ -22,3 +23,5 @@ jobs:
           test -f _redirects
           grep -q "WebApplication" index.html
           grep -q "prefers-reduced-motion" styles.css
+      - name: Runtime smoke test
+        run: node smoke.mjs
