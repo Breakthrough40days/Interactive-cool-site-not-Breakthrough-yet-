@@ -1,0 +1,20 @@
+# Breakthrough Interactive Lab
+
+> Experimental browser experiences where human input becomes digital matter.
+
+## Main experience
+- https://40daysuccess.com/interactive/ — Six interactive experiments using hand tracking, simulated particles, live audio analysis, device motion, persistent local touch traces, repeated-day visualization, and temporal camera effects.
+
+## Experiments
+- Body + Matter: hand-tracked interaction with digital particles.
+- Memory + Touch: a deformable field that remembers local traces.
+- Voice + Matter: live microphone characteristics become interactive forms.
+- Device + Space: device orientation and pointer movement control a spatial portal.
+- Action + Time: a forty-day visualization that advances on real calendar days.
+- Body + Time: a temporal mirror made from recent live camera frames.
+
+## Privacy
+Camera and microphone experiences are intended to process live media in the browser. The application does not intentionally upload or store camera or microphone recordings.
+
+## Technology
+HTML, CSS, JavaScript, Canvas, MediaPipe browser vision, Web Audio, Device Orientation, WebGPU where supported, and progressive fallbacks.
