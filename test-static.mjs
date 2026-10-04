@@ -14,5 +14,6 @@ if(!app.includes("impossible-room-v1")||!app.includes("THE ROOM REMEMBERS YOU"))
 if(!app.includes("memory.learned.push('THROW')")||!app.includes("memory.learned.push('PINCH')"))fail('Room learned gestures missing');
 if(!app.includes("CUSTOM:")||!app.includes("SOMETHING LEARNED YOU")||!app.includes("pred.push"))fail('Room adaptive intelligence missing');
 if(!app.includes("YOU CAUGHT IT")||!app.includes("past.push")||!app.includes("YOU THREW SOMETHING THAT ISN’T THERE"))fail('Room impossible object or temporal selves missing');
+if(!app.includes("YOUR VOICE MADE SOMETHING")||!app.includes("VOICEBORN")||!app.includes("temper.fear")||!app.includes("temper.trust"))fail('Room voice species or behavioral memory missing');
 if(!html.includes('id="roomPass"')||!html.includes('id="roomMemory"'))fail('Room lineage UI missing');
 console.log('Static invariants OK');
