@@ -25,14 +25,14 @@ function initTrails(){
  const c=$('#trailCanvas'),o=fit(c),ctx=o.ctx;let run=true,down=false,p={x:o.w*.7,y:o.h*.5},last={...p},speed=0;
  const gap=15,cols=Math.ceil(o.w/gap)+1,rows=Math.ceil(o.h/gap)+1,nodes=[];
  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)nodes.push({x:x*gap,y:y*gap,hx:x*gap,hy:y*gap,vx:0,vy:0});
- let scars=JSON.parse(localStorage.getItem('field-scars-v2')||'[]'),sparks=[];
+ let inherited=[];try{inherited=JSON.parse(localStorage.getItem('bt-inherited')||'null')?.scars||0}catch{}let scars=JSON.parse(localStorage.getItem('field-scars-v2')||'[]'),sparks=[];$('#trailCount').textContent=scars.length+' LOCAL POINTS · '+inherited+' INHERITED FROM THE OBJECT';
  function pos(e){let r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
  function pd(e){down=true;p=last=pos(e);c.setPointerCapture?.(e.pointerId)}
  function pm(e){let q=pos(e);speed=Math.hypot(q.x-p.x,q.y-p.y);last=p;p=q;if(down&&speed>4){scars.push([p.x,p.y,clamp(speed/45,.15,1)]);if(scars.length>1500)scars.splice(0,200);for(let i=0;i<Math.min(10,speed/4);i++)sparks.push({x:p.x,y:p.y,vx:(p.x-last.x)*.18+rnd(3,-3),vy:(p.y-last.y)*.18+rnd(3,-3),a:1})}}
  function pu(){if(down){down=false;localStorage.setItem('field-scars-v2',JSON.stringify(scars));$('#trailCount').textContent=scars.length+' POINTS OF YOUR PATH REMEMBERED';if(speed>25)flash('THE FIELD REMEMBERS')}} 
  c.addEventListener('pointerdown',pd);c.addEventListener('pointermove',pm);addEventListener('pointerup',pu);
  function loop(){
-  if(!run)return;ctx.fillStyle='rgba(5,7,6,.26)';ctx.fillRect(0,0,o.w,o.h);
+  if(!run)return;ctx.fillStyle='rgba(5,7,6,.26)';ctx.fillRect(0,0,o.w,o.h);if(inherited){ctx.save();ctx.globalAlpha=Math.min(.16,.035+inherited/12000);ctx.strokeStyle='rgba(255,105,55,.45)';for(let z=0;z<Math.min(14,2+inherited/120);z++){ctx.beginPath();let yy=(z+1)/(Math.min(14,2+inherited/120)+1)*o.h;for(let x=0;x<o.w;x+=18){let y=yy+Math.sin(x*.014+z*1.7)*18+Math.sin(x*.004+z)*28;x?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke()}ctx.restore()}
   for(const q of nodes){q.vx+=(q.hx-q.x)*.012;q.vy+=(q.hy-q.y)*.012;let dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy)||1;if(down&&d<155){let f=(1-d/155)*(2.5+speed*.11);q.vx+=dx/d*f+(p.x-last.x)*.07;q.vy+=dy/d*f+(p.y-last.y)*.07}q.vx*=.91;q.vy*=.91;q.x+=q.vx;q.y+=q.vy;let mag=Math.hypot(q.x-q.hx,q.y-q.hy);ctx.fillStyle=mag>8?'rgba(209,154,75,.58)':'rgba(120,153,142,.24)';ctx.fillRect(q.x,q.y,mag>8?2.2:1.1,mag>8?2.2:1.1)}
   for(let i=1;i<scars.length;i++){let a=scars[i-1],b=scars[i];if(Math.hypot(a[0]-b[0],a[1]-b[1])<55){ctx.strokeStyle='rgba(209,154,75,'+(.05+a[2]*.16)+')';ctx.lineWidth=.6+a[2]*1.6;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke()}}
   sparks.forEach(s=>{s.x+=s.vx;s.y+=s.vy;s.vx*=.97;s.vy*=.97;s.a*=.95;ctx.fillStyle='rgba(238,232,217,'+s.a+')';ctx.fillRect(s.x,s.y,2,2)});sparks=sparks.filter(s=>s.a>.04);RAF=requestAnimationFrame(loop)
