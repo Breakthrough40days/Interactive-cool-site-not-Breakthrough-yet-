@@ -32,3 +32,5 @@ if(!html.includes('roomReplay')||!app.includes('mind.timeline')||!app.includes('
 if(!app.includes('mind.contradictions')||!app.includes('const decay=')||!app.includes("orb.material='inherited'"))fail('contradiction decay or inherited object missing');
 if(!app.includes('orb.stretch')||!app.includes('YOU TORE SOMETHING'))fail('two-hand deformable object missing');
 if(!app.includes('mind.discover')||!app.includes('rulesSeen'))fail('discovery engine missing');
+
+if(!app.includes('adaptDifficulty')||!app.includes('fingerprint'))fail('adaptive difficulty or behavioral fingerprint missing');
