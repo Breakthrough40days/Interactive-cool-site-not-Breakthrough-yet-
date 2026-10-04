@@ -1,18 +1,9 @@
-<!doctype html><html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101715"><title>Breakthrough | 40 Days</title>
-<meta name="description" content="Stop waiting to feel ready. One small action. Forty days.">
-<link rel="stylesheet" href="/styles.css"></head><body>
-<div id="experience"><canvas id="world"></canvas><div class="grain"></div><div class="vignette"></div></div>
-<header><a class="brand" href="#top"><b>B</b><span>BREAKTHROUGH</span></a><div class="counter"><span id="sceneNo">01</span><i></i><span>04</span></div><a class="begin-link" href="#begin">BEGIN</a></header>
-<div class="rail"><i id="railFill"></i></div>
-<main id="top">
-<section class="scene hero" data-scene="0"><div class="copy hero-copy"><p class="overline">THE 40 DAY CHALLENGE</p><h1>Stop<br><em>starting over.</em></h1><p class="dek">One change. One small action.<br>Forty days of moving anyway.</p></div><div class="instruction"><span class="dot"></span><span>MOVE THROUGH IT</span></div></section>
-<section class="scene" data-scene="0"><div class="copy right"><p class="overline">01 / STUCK</p><h2>You keep waiting<br>for <em>ready.</em></h2><p>For motivation. Confidence. Certainty. A better week. A different mood.</p><p class="whisper">Touch what’s in the way.</p></div></section>
-<section class="scene" data-scene="1"><div class="copy left"><p class="overline">02 / MOVE</p><h2>Move<br><em>before</em> the feeling.</h2><p>The feeling doesn’t have to disappear. It just doesn’t get to make the decision.</p></div></section>
-<section class="scene" data-scene="2"><div class="copy right"><p class="overline">03 / REPEAT</p><h2>Small.<br>Again.<br><em>Again.</em></h2><p>Repetition becomes evidence. Evidence becomes trust.</p><div class="forty" id="forty"></div></div></section>
-<section class="scene" data-scene="3"><div class="copy left"><p class="overline">04 / CHANGE</p><h2>Still you.<br>More <em>free.</em></h2><p>Not a perfect life. More room between what you feel and what you choose.</p></div></section>
-<section class="final" id="begin"><div class="final-copy"><p class="overline">DAY ONE CAN BE TODAY</p><h2>Forty days won’t<br>make you perfect.</h2><h3>They can make you different.</h3><a href="https://40daysuccess.com">START YOUR BREAKTHROUGH <span>↗</span></a></div></section>
-</main>
-<div class="hold-message" id="holdMessage">What are you waiting<br>to feel ready for?</div>
-<script type="module" src="/app.js"></script></body></html>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f2ecdf"><title>Your Breakthrough</title><meta name="description" content="Stop waiting to feel ready. Start with one small move."><link rel="stylesheet" href="/styles.css"></head><body>
+<header><a href="/" class="brand"><b>B</b><span>BREAKTHROUGH</span></a><span class="step" id="stepLabel">01 / 05</span></header>
+<main>
+<section class="screen active" id="s1"><div class="center intro"><p class="eyebrow">A 60-SECOND EXPERIMENT</p><h1>What do you keep saying<br>you're going to <em>do?</em></h1><form id="goalForm"><input id="goal" maxlength="54" autocomplete="off" placeholder="e.g. exercise, call someone, start writing…" aria-label="Something you keep putting off"><button>ENTER ↵</button></form><p class="tiny">Don't overthink it. The first thing that came to mind.</p></div></section>
+<section class="screen" id="s2"><canvas id="field"></canvas><div class="goalCore"><span>YOU SAID</span><strong id="goalCoreText"></strong></div><div class="instruction" id="pushInstruction">MOVE THROUGH WHAT GETS IN THE WAY</div><button class="next ghost" id="continue1">I SEE IT →</button></section>
+<section class="screen" id="s3"><div class="center reveal"><p class="eyebrow">NOTICE WHAT JUST HAPPENED</p><h2>You moved them.<br><em>They came back.</em></h2><p>You don't have to get rid of every thought, excuse or feeling before you begin.</p><button class="primary" id="continue2">SO WHAT DO I DO?</button></div></section>
+<section class="screen" id="s4"><div class="center action"><p class="eyebrow">MAKE IT SMALL ENOUGH TO DO</p><h2>What could you do for<br><em>five minutes?</em></h2><p id="actionContext"></p><form id="actionForm"><input id="action" maxlength="70" autocomplete="off" placeholder="One tiny action…" aria-label="One tiny action"><button>THIS IS MY STEP →</button></form><div class="suggestions" id="suggestions"></div></div></section>
+<section class="screen" id="s5"><canvas id="celebration"></canvas><div class="cardWrap"><div class="card" id="card"><div class="cardTop"><span>BREAKTHROUGH</span><span>DAY 01 / 40</span></div><div class="cardBody"><p>I'M NOT WAITING<br>TO FEEL READY.</p><h2 id="cardAction"></h2><div class="goalLine">My breakthrough: <span id="cardGoal"></span></div></div><div class="cardBottom"><span>SMALL STEPS. REPEATED.</span><span>40DAYSUCCESS.COM</span></div></div><div class="finalActions"><button class="primary" id="share">SHARE MY DAY ONE</button><button class="textBtn" id="restart">DO ANOTHER</button></div></div></section>
+</main><div class="progress"><i id="progress"></i></div><script type="module" src="/app.js"></script></body></html>
