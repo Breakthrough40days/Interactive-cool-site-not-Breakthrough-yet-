@@ -13,7 +13,8 @@
     "test:runtime": "node smoke.mjs"
   },
   "dependencies": {
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "openai": "^6.0.0"
   },
   "devDependencies": {
     "playwright": "^1.55.0"
