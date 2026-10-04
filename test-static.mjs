@@ -54,3 +54,5 @@ if(!html.includes('@supabase/supabase-js@2')||!html.includes('roomLive')||!app.i
 if(!html.includes('roomEvidence')||!html.includes('roomForgetTheory')||!app.includes('forget_theory'))fail('evidence or granular memory controls missing');
 if(!app.includes("mind.intent")||!app.includes("inferIntent")||!app.includes("repeatCount"))fail('visitor intent/repetition detection missing');
 if(!app.includes("orb.hidden=true")||!app.includes("INVISIBLE OBJECT"))fail('invisible-object encounter missing');
+
+if(!app.includes('memory.metrics')||!app.includes('predictionAccuracy')||!app.includes('hesitations'))fail('session quality instrumentation missing');
