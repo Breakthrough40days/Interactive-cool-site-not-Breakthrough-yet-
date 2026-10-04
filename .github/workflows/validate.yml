@@ -1,8 +1,6 @@
 name: Validate Interactive Lab
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -18,7 +16,7 @@ jobs:
         run: npm install
       - name: Static and production build
         run: npm run validate
-      - name: Install Chromium
+      - name: Install browsers
         run: npx playwright install --with-deps chromium webkit
       - name: Browser smoke test
         run: npm run smoke
