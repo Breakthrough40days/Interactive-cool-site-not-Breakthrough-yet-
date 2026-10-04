@@ -1,33 +1,31 @@
-# Breakthrough Interactive Experience
+# Breakthrough Interactive Lab
 
-A tactile, scroll-driven concept for the Breakthrough 40-Day Challenge.
+A browser-native experimental experience where touch, hands, voice, motion, time and memory alter a living digital object.
 
-## Core idea
+## Experiences
+- **Body + Matter** — camera hand tracking, pinch/fist/open-palm gestures, CPU fallback matter and optional WebGPU matter.
+- **Memory + Touch** — a deformable field with persistent local scars and inherited object history.
+- **Voice + Matter** — microphone energy/frequency data grows throwable visual objects. Raw audio is not intentionally stored.
+- **Device + Space** — pointer/device-orientation controlled spatial portal.
+- **Action + Time** — one real calendar-day mark at a time across forty days.
+- **Body + Time** — a live temporal mirror that accumulates recent selves.
 
-The page itself moves through the same arc as the program:
+## Pass It
+The Pass It surface creates a URL containing a compact non-media summary of the object's lineage: experiment journey, trace count, voice-object count, Future-day count, generation and visual seed. Camera frames and microphone recordings are not placed in the shared URL.
 
-**stuck → one step → repetition → change**
+## Development
+```bash
+npm install
+npm run dev
+npm run validate
+```
 
-The persistent particle sculpture begins compressed and tangled. Cursor/touch interaction displaces particles without destroying them; spring physics brings them back. As the visitor moves through the story, the same sculpture gradually opens into a larger, more coherent form.
+`npm run validate` runs JavaScript syntax checks and the production Vite build.
 
-## Interaction
+Add `?debug=1` to show FPS, rendering mode and tracked-hand diagnostics.
 
-- Cursor/touch proximity disturbs particles.
-- Dragging rotates the complete 3D form with residual momentum.
-- Press-and-hold reveals a reflective prompt.
-- Scroll chapters morph the sculpture rather than replacing it with disconnected illustrations.
-- A 40-day progression becomes active during the repetition chapter.
-- Mobile uses a sticky, touchable visual rather than removing the interaction.
-- Reduced-motion preferences disable ambient motion/disturbance.
+## Progressive enhancement
+The experience adapts particle/render density on lower-core devices. WebGPU is optional. Camera, microphone and motion permissions are requested only when the related experience is activated, and experiences retain non-permission interaction where practical.
 
-## Design direction
-
-Warm cream, charcoal, restrained teal/sage and gold. Large editorial typography, very little interface chrome, no generic SaaS cards, and a dark human-centered section to deliberately contrast the abstract opening.
-
-## Files
-
-- `index.html` — narrative structure and Breakthrough copy
-- `styles.css` — visual system, responsive layout and motion states
-- `app.js` — particle physics, morph states, pointer/touch interaction and scroll state
-
-The experience is original to Breakthrough; it borrows the principle of a tactile web object, not another site's artwork or implementation.
+## Discovery
+The repository includes crawler rules, sitemap, structured WebApplication data, semantic explanatory HTML, social metadata and `llms.txt`.
