@@ -1,30 +1,33 @@
-# Breakthrough Interactive
+# Breakthrough Interactive Experience
 
-An experimental Breakthrough landing experience built around a tactile particle sculpture.
+A tactile, scroll-driven concept for the Breakthrough 40-Day Challenge.
+
+## Core idea
+
+The page itself moves through the same arc as the program:
+
+**stuck → one step → repetition → change**
+
+The persistent particle sculpture begins compressed and tangled. Cursor/touch interaction displaces particles without destroying them; spring physics brings them back. As the visitor moves through the story, the same sculpture gradually opens into a larger, more coherent form.
 
 ## Interaction
 
-- Move the cursor through the particle form to disturb it.
-- Particles use spring physics to return to their home positions.
-- Click/touch and drag to rotate the complete three-dimensional form.
-- The sculpture slowly moves while idle.
-- Reduced-motion preferences disable the ambient movement and particle disturbance.
-- Responsive particle counts keep the experience practical on smaller devices.
+- Cursor/touch proximity disturbs particles.
+- Dragging rotates the complete 3D form with residual momentum.
+- Press-and-hold reveals a reflective prompt.
+- Scroll chapters morph the sculpture rather than replacing it with disconnected illustrations.
+- A 40-day progression becomes active during the repetition chapter.
+- Mobile uses a sticky, touchable visual rather than removing the interaction.
+- Reduced-motion preferences disable ambient motion/disturbance.
 
-The sculpture is intentionally not a copy of OpenAI's artwork. Its form represents the Breakthrough idea: a constrained, tangled lower state gradually opening into a wider field of possibility.
+## Design direction
 
-## Run locally
-
-Because this is dependency-free HTML/CSS/JavaScript, serve the folder with any static web server, for example:
-
-```bash
-python -m http.server 8000
-```
-
-Then open `http://localhost:8000`.
+Warm cream, charcoal, restrained teal/sage and gold. Large editorial typography, very little interface chrome, no generic SaaS cards, and a dark human-centered section to deliberately contrast the abstract opening.
 
 ## Files
 
-- `index.html` — page structure and Breakthrough copy
-- `styles.css` — responsive editorial design system
-- `app.js` — canvas particle renderer, interaction and spring physics
+- `index.html` — narrative structure and Breakthrough copy
+- `styles.css` — visual system, responsive layout and motion states
+- `app.js` — particle physics, morph states, pointer/touch interaction and scroll state
+
+The experience is original to Breakthrough; it borrows the principle of a tactile web object, not another site's artwork or implementation.
