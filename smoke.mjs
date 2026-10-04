@@ -12,6 +12,7 @@ for(const id of ['home','trails','voice','move','future','mirror','body']){
 }
 await page.evaluate(()=>location.hash='future');await page.fill('#futureAction','smoke test');await page.click('#buildBtn');await wait(100);
 const day=await page.locator('#dayLabel').textContent();if(!/DAY 01/.test(day))throw new Error('Future did not persist a real-day mark');
-await page.click('#shareLab');if(!(await page.locator('#passPanel').evaluate(el=>el.classList.contains('open'))))throw new Error('Pass panel failed');
+await page.click('#shareLab');if(!(await page.locator('#passPanel').evaluate(el=>el.classList.contains('open'))))throw new Error('Pass panel failed');await page.click('#closePass');
+const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));await mobile.goto('http://127.0.0.1:4173/#home',{waitUntil:'networkidle'});await mobile.click('#menu');if(!(await mobile.locator('#nav').evaluate(el=>el.classList.contains('open'))))throw new Error('Mobile menu failed');for(const id of ['body','trails','voice','move','future','mirror']){await mobile.evaluate(id=>location.hash=id,id);await wait(180);if(!(await mobile.locator('#'+id).evaluate(el=>el.classList.contains('active'))))throw new Error('Mobile '+id+' failed')}if(mobileErrors.length)throw new Error('Mobile runtime errors: '+mobileErrors.join(' | '));await mobile.close();
 if(errors.length)throw new Error('Runtime errors: '+errors.join(' | '));
 await browser.close();server.kill();console.log('Runtime smoke test passed');
