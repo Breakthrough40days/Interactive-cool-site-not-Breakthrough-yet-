@@ -26,3 +26,9 @@ if(!app.includes('scoreTest')||!app.includes("event('test_result'")||!app.includ
 
 if(!html.includes('roomSay')||!html.includes('roomReveal')||!html.includes('roomSurprise'))fail('Room conversation/reveal/prediction UI missing');
 if(!app.includes("fetch('/api/room-mind'")||!app.includes('compileExperiment')||!app.includes('roomProfile')||!app.includes('makeArtifact'))fail('Room AI contract/compiler/profile/artifact missing');
+
+if(!html.includes('roomForeground')||!html.includes('bodyForeground')||!app.includes("globalCompositeOperation='source-in'"))fail('foreground depth compositing missing');
+if(!html.includes('roomReplay')||!app.includes('mind.timeline')||!app.includes('choreograph'))fail('timeline replay or five-minute choreography missing');
+if(!app.includes('mind.contradictions')||!app.includes('const decay=')||!app.includes("orb.material='inherited'"))fail('contradiction decay or inherited object missing');
+if(!app.includes('orb.stretch')||!app.includes('YOU TORE SOMETHING'))fail('two-hand deformable object missing');
+if(!app.includes('mind.discover')||!app.includes('rulesSeen'))fail('discovery engine missing');
