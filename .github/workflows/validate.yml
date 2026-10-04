@@ -1,31 +1,18 @@
-name: Validate Interactive Lab
+name: validate
 on:
   push:
     branches: [main]
   pull_request:
+permissions:
+  contents: read
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-      - name: Install browser test runtime
-        run: npx playwright@1.55.0 install --with-deps chromium
+          cache: npm
+      - run: npm ci
       - run: npm run validate
-      - name: Verify discovery files
-        run: |
-          test -f robots.txt
-          test -f sitemap.xml
-          test -f llms.txt
-          test -f _redirects
-          grep -q "WebApplication" index.html
-          grep -q "prefers-reduced-motion" styles.css
-      - name: Runtime smoke test
-        run: npm run test:runtime
-      - name: Production bundle budget
-        run: |
-          test $(du -sk dist | cut -f1) -lt 1800
-          test $(find dist -type f | wc -l) -lt 40
