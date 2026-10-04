@@ -6,7 +6,7 @@ export async function createGPUMatter(canvas,{count=100000}={}){
  const stride=8,bytes=count*stride*4,data=new Float32Array(count*stride);
  for(let i=0;i<count;i++){let k=i*stride;data[k]=Math.random()*2-1;data[k+1]=Math.random()*2.2;data[k+2]=(Math.random()-.5)*.002;data[k+3]=-Math.random()*.006;data[k+4]=Math.random();data[k+5]=Math.random();data[k+6]=Math.random();data[k+7]=1}
  const particles=device.createBuffer({size:bytes,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_DST});device.queue.writeBuffer(particles,0,data);
- const uniform=device.createBuffer({size:112,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
+ const uniform=device.createBuffer({size:128,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
  const shader=device.createShaderModule({code:`
  struct P{pos:vec2f,vel:vec2f,misc:vec4f}; struct U{dt:f32,aspect:f32,mode:f32,handCount:f32,h0:vec4f,h1:vec4f,v0:vec4f,v1:vec4f,p0:vec4f,p1:vec4f,impulse:f32,pad:vec3f};
  @group(0) @binding(0) var<storage,read_write> p:array<P>; @group(0) @binding(1) var<uniform> u:U;
@@ -19,7 +19,7 @@ export async function createGPUMatter(canvas,{count=100000}={}){
  const compute=await device.createComputePipelineAsync({layout,compute:{module:shader,entryPoint:'step'}});
  const render=await device.createRenderPipelineAsync({layout,vertex:{module:shader,entryPoint:'vs'},fragment:{module:shader,entryPoint:'fs',targets:[{format,blend:{color:{srcFactor:'src-alpha',dstFactor:'one',operation:'add'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha',operation:'add'}}}]},primitive:{topology:'triangle-list'}});
  const bg=device.createBindGroup({layout:bgl,entries:[{binding:0,resource:{buffer:particles}},{binding:1,resource:{buffer:uniform}}]});
- let alive=true,last=performance.now(),state={mode:0,hands:[]},impulse=0,previous=[];
+ let alive=true,last=performance.now(),state={mode:0,hands:[]},impulse=0,impulsePos=null,previous=[];device.lost.then(()=>{alive=false}).catch(()=>{});
  function frame(now){if(!alive)return;let r=canvas.getBoundingClientRect();if(canvas.width!==Math.floor(r.width*d)||canvas.height!==Math.floor(r.height*d))resize();let dt=Math.min(.033,(now-last)/1000);last=now,aspect=r.width/r.height;
   let a=new Float32Array(28);a[0]=dt;a[1]=aspect;a[2]=state.mode;a[3]=Math.min(2,state.hands.length);state.hands.slice(0,2).forEach((h,i)=>{let k=4+i*4;a[k]=(h.x/r.width)*2-1;a[k+1]=1-(h.y/r.height)*2;a[k+2]=Math.max(.06,h.size/r.height*1.35);a[k+3]=h.closed?1:0;let v=12+i*4;a[v]=(h.vx||0)/r.width;a[v+1]=-(h.vy||0)/r.height;a[v+2]=Math.hypot(h.vx||0,h.vy||0)/Math.max(r.width,r.height);a[v+3]=h.cup||0;let p=20+i*4;a[p]=((h.pinchX??h.x)/r.width)*2-1;a[p+1]=1-((h.pinchY??h.y)/r.height)*2;a[p+2]=h.pinching?1:0;a[p+3]=h.pinchStrength||0});a[24]=impulse;if(impulsePos){a[20]=impulsePos.x/r.width*2-1;a[21]=1-impulsePos.y/r.height*2;a[23]=2;}impulse*=.82;if(impulse<.02)impulsePos=null;device.queue.writeBuffer(uniform,0,a);
   let enc=device.createCommandEncoder(),cp=enc.beginComputePass();cp.setPipeline(compute);cp.setBindGroup(0,bg);cp.dispatchWorkgroups(Math.ceil(count/256));cp.end();
