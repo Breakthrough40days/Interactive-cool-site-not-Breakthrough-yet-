@@ -112,7 +112,7 @@ function initBody(){
    if(!closed&&old.closed){if(Math.hypot(old.vx,old.vy)>18)gpuMatter?.burst(Math.min(.9,Math.hypot(old.vx,old.vy)/55));for(const p of old.caught){if(p.held===index){p.held=null;p.vx=old.vx*.65+rnd(1,-1);p.vy=old.vy*.65+rnd(1,-1)}}if(old.caught.length)flash('THROWN');old.caught=[]}
    if(pinching&&!old.wasPinching){let nearest=null,nd=handSize*.5;for(const p of particles){if(p.held==null){let d=Math.hypot(p.x-old.pinchX,p.y-old.pinchY);if(d<nd){nearest=p;nd=d}}}if(nearest){nearest.held=index;nearest.pinch=true;nearest.ox=0;nearest.oy=0;old.caught.push(nearest);flash('PINCHED ONE')}}
    if(!pinching&&old.wasPinching){for(const p of old.caught.filter(p=>p.pinch)){p.held=null;p.pinch=false;p.vx=old.vx*.9;p.vy=old.vy*.9}old.caught=old.caught.filter(p=>!p.pinch)}
-   old.wasPinching=pinching;old.closed=closed;return old;
+   old.wasPinching=pinching;old.closed=closed;old.fistScore=fScore;old.pinchStrength=clamp(1-pinchDist/(handSize*.48),0,1);return old;
  }
  async function begin(){try{
    if(navigator.gpu&&!gpuMatter){import('./gpu-matter.js').then(m=>m.createGPUMatter($('#bodyGPU'),{count:innerWidth<700?50000:100000})).then(g=>{if(!run){g.destroy();return}gpuMatter=g;gpuMatter.setMode(mode);gpuMatter.setHands(handStates);flash('GPU MATTER ONLINE')}).catch(()=>{$('#bodyGPU').style.display='none';gpuMatter=null})}
