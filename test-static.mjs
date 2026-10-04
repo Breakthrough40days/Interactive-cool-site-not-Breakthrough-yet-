@@ -2,6 +2,8 @@ import fs from 'node:fs';
 const app=fs.readFileSync('app.js','utf8'),html=fs.readFileSync('index.html','utf8'),gpu=fs.readFileSync('gpu-matter.js','utf8');
 const fail=m=>{throw new Error(m)};
 if(!app.startsWith("const $=s=>document.querySelector(s),all=s=>"))fail('selector helpers broken');
+if(app.includes("$('.view').forEach"))fail('route incorrectly uses single-element selector for view collection');
+if(!app.includes("all('.view').forEach"))fail('route view collection missing');
 for(const id of ['home','body','trails','voice','move','future','mirror'])if(!html.includes('id="'+id+'"'))fail('missing route '+id);
 for(const id of ['bodyStart','micBtn','motionBtn','buildBtn','mirrorStart','shareLab','passPanel'])if(!html.includes('id="'+id+'"')||!app.includes("'#"+id+"'"))fail('unwired control '+id);
 if(!html.includes('@mediapipe/hands/hands.js')||!html.includes('@mediapipe/selfie_segmentation/selfie_segmentation.js'))fail('vision libraries missing');
