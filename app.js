@@ -1,35 +1,26 @@
-import * as THREE from 'three';
-const canvas=document.querySelector('#world'), reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;
-const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,100);camera.position.set(0,0,7.2);
-const group=new THREE.Group();scene.add(group);
-const N=innerWidth<700?9000:18000,pos=new Float32Array(N*3),start=new Float32Array(N*3),end=new Float32Array(N*3),seed=new Float32Array(N),color=new Float32Array(N*3);
-const c1=new THREE.Color('#d7d0bd'),c2=new THREE.Color('#5d8b7d'),c3=new THREE.Color('#d4a15b');
-function gaussian(){return (Math.random()+Math.random()+Math.random()+Math.random()-2)*.7}
-for(let i=0;i<N;i++){const k=i*3,u=Math.random(),a=Math.random()*Math.PI*2;
- const rr=.25+Math.pow(Math.random(),1.8)*1.25;start[k]=Math.cos(a*2.3+u*9)*rr*.62+gaussian()*.15;start[k+1]=(u-.5)*3.6+gaussian()*.28;start[k+2]=Math.sin(a*1.8+u*8)*rr*.62+gaussian()*.17;
- const r=.65+Math.pow(u,.75)*2.05*(.48+Math.random()*.52),t=u*Math.PI*6+(i%2?Math.PI:0);end[k]=Math.cos(t)*r+gaussian()*.16;end[k+1]=(u-.5)*4.4+gaussian()*.16;end[k+2]=Math.sin(t)*r+gaussian()*.16;if(u>.72){const b=(u-.72)/.28;end[k]+=gaussian()*1.2*b;end[k+2]+=gaussian()*1.2*b}
- pos[k]=start[k];pos[k+1]=start[k+1];pos[k+2]=start[k+2];seed[i]=Math.random();const cc=seed[i]>.91?c3:seed[i]>.73?c2:c1;color[k]=cc.r;color[k+1]=cc.g;color[k+2]=cc.b}
-const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('color',new THREE.BufferAttribute(color,3));geo.setAttribute('aSeed',new THREE.BufferAttribute(seed,1));
-const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true,uniforms:{uTime:{value:0},uMouse:{value:new THREE.Vector3(99,99,0)},uMorph:{value:0},uPoint:{value:innerWidth<700?3.0:2.4}},vertexShader:`attribute float aSeed;uniform float uTime;uniform vec3 uMouse;uniform float uPoint;varying vec3 vColor;varying float vAlpha;void main(){vec3 p=position;float wave=sin(uTime*.45+aSeed*28.)*.025;p+=normalize(p+vec3(.001))*wave;vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=uPoint*(1.4+aSeed*1.8)*(7./-mv.z);vColor=color;vAlpha=.32+aSeed*.58;}`,fragmentShader:`varying vec3 vColor;varying float vAlpha;void main(){vec2 p=gl_PointCoord-.5;float d=length(p);if(d>.5)discard;float glow=smoothstep(.5,0.,d);gl_FragColor=vec4(vColor,glow*vAlpha);}`});
-const points=new THREE.Points(geo,mat);group.add(points);
-const mouse=new THREE.Vector2(99,99),targetMouse=new THREE.Vector2(),ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,0,1),0),hit=new THREE.Vector3();let morph=0,targetMorph=0,drag=false,last={x:0,y:0},vel={x:0,y:0},hold;
-function pointerWorld(e){targetMouse.x=e.clientX/innerWidth*2-1;targetMouse.y=-(e.clientY/innerHeight)*2+1;ray.setFromCamera(targetMouse,camera);ray.ray.intersectPlane(plane,hit)}
-addEventListener('pointermove',e=>{pointerWorld(e);if(drag){let dx=e.clientX-last.x,dy=e.clientY-last.y;vel.y=dx*.0035;vel.x=dy*.0025;last={x:e.clientX,y:e.clientY}}});
+const canvas=document.querySelector('#world'),gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false});
+if(!gl) document.body.classList.add('no-webgl');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,N=innerWidth<700?9000:18000;
+const VS=`attribute vec3 aStart;attribute vec3 aEnd;attribute float aSeed;uniform float uTime,uMorph,uAspect,uRotX,uRotY;uniform vec2 uMouse;varying float vSeed;varying float vDepth;
+void main(){float m=uMorph*uMorph*(3.0-2.0*uMorph);vec3 p=mix(aStart,aEnd,m);p+=normalize(p+vec3(.001))*sin(uTime*.5+aSeed*29.)*.025;
+float cy=cos(uRotY),sy=sin(uRotY),cx=cos(uRotX),sx=sin(uRotX);p=vec3(p.x*cy-p.z*sy,p.y,p.x*sy+p.z*cy);p=vec3(p.x,p.y*cx-p.z*sx,p.y*sx+p.z*cx);
+vec2 projected=vec2(p.x/uAspect,p.y)/3.35;float dist=distance(projected,uMouse);float f=smoothstep(.32,0.,dist);vec2 dir=normalize(projected-uMouse+vec2(.0001));p.xy+=dir*f*.52;p.z+=sin(aSeed*31.+uTime*3.)*f*.35;
+float z=7.2-p.z;gl_Position=vec4(p.x/(3.35*uAspect),p.y/3.35,(p.z+2.)/8.,1.);gl_PointSize=(2.2+aSeed*3.4)*(1.25+max(0.,p.z)*.13);vSeed=aSeed;vDepth=clamp((p.z+3.)/6.,0.,1.);}`;
+const FS=`precision mediump float;varying float vSeed;varying float vDepth;void main(){vec2 q=gl_PointCoord-.5;float d=length(q);if(d>.5)discard;float glow=smoothstep(.5,0.,d);vec3 cream=vec3(.84,.81,.73),teal=vec3(.36,.55,.49),gold=vec3(.83,.63,.36);vec3 c=vSeed>.91?gold:(vSeed>.73?teal:cream);gl_FragColor=vec4(c,glow*(.28+vSeed*.62)*(.65+vDepth*.35));}`;
+function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s}
+const prog=gl.createProgram();gl.attachShader(prog,shader(gl.VERTEX_SHADER,VS));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);gl.useProgram(prog);
+const start=new Float32Array(N*3),end=new Float32Array(N*3),seed=new Float32Array(N);function g(){return(Math.random()+Math.random()+Math.random()+Math.random()-2)*.7}
+for(let i=0;i<N;i++){let k=i*3,u=Math.random(),a=Math.random()*Math.PI*2,r=.25+Math.pow(Math.random(),1.8)*1.25;start[k]=Math.cos(a*2.3+u*9)*r*.62+g()*.15;start[k+1]=(u-.5)*3.6+g()*.28;start[k+2]=Math.sin(a*1.8+u*8)*r*.62+g()*.17;let rr=.65+Math.pow(u,.75)*2.05*(.48+Math.random()*.52),t=u*Math.PI*6+(i%2?Math.PI:0);end[k]=Math.cos(t)*rr+g()*.16;end[k+1]=(u-.5)*4.4+g()*.16;end[k+2]=Math.sin(t)*rr+g()*.16;if(u>.72){let b=(u-.72)/.28;end[k]+=g()*1.2*b;end[k+2]+=g()*1.2*b}seed[i]=Math.random()}
+function attr(name,data,size){let loc=gl.getAttribLocation(prog,name),buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0)}
+attr('aStart',start,3);attr('aEnd',end,3);attr('aSeed',seed,1);const U=n=>gl.getUniformLocation(prog,n),ut=U('uTime'),um=U('uMorph'),ua=U('uAspect'),urx=U('uRotX'),ury=U('uRotY'),ums=U('uMouse');
+gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.disable(gl.DEPTH_TEST);
+let morph=0,targetMorph=0,rx=-.12,ry=-.3,vx=0,vy=.0012,drag=false,last={x:0,y:0},mouse={x:99,y:99},hold;
+function resize(){let d=Math.min(devicePixelRatio||1,1.7);canvas.width=innerWidth*d;canvas.height=innerHeight*d;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';gl.viewport(0,0,canvas.width,canvas.height)}
+resize();addEventListener('resize',resize);
+addEventListener('pointermove',e=>{mouse.x=(e.clientX/innerWidth*2-1);mouse.y=-(e.clientY/innerHeight*2-1);if(drag){let dx=e.clientX-last.x,dy=e.clientY-last.y;vy=dx*.00009;vx=dy*.00007;last={x:e.clientX,y:e.clientY}}});
 addEventListener('pointerdown',e=>{drag=true;last={x:e.clientX,y:e.clientY};hold=setTimeout(()=>document.querySelector('#holdMessage').classList.add('show'),650)});
-addEventListener('pointerup',()=>{drag=false;clearTimeout(hold);document.querySelector('#holdMessage').classList.remove('show')});addEventListener('pointercancel',()=>{drag=false;clearTimeout(hold)});
-const scenes=[...document.querySelectorAll('.scene')],sceneNo=document.querySelector('#sceneNo');let active=0;
-const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>.48){active=+e.target.dataset.scene;targetMorph=active/3;sceneNo.textContent='0'+(active+1)}}),{threshold:[.48,.65]});scenes.forEach(s=>obs.observe(s));
-const forty=document.querySelector('#forty');for(let i=0;i<40;i++){const d=document.createElement('i');forty.appendChild(d)}
-function animate(t){requestAnimationFrame(animate);const time=t*.001;mat.uniforms.uTime.value=time;morph+=(targetMorph-morph)*.018;
- const arr=geo.attributes.position.array;
- for(let i=0;i<N;i++){const k=i*3,s=seed[i],m=morph*morph*(3-2*morph);let x=start[k]+(end[k]-start[k])*m,y=start[k+1]+(end[k+1]-start[k+1])*m,z=start[k+2]+(end[k+2]-start[k+2])*m;
-  // GPU-looking tactile wake: local 3D displacement toward/away from cursor projected near z=0.
-  if(!reduced&&hit){const dx=x-hit.x,dy=y-hit.y,d2=dx*dx+dy*dy,R=1.15;if(d2<R*R){const d=Math.sqrt(d2)+.001,f=(1-d/R);x+=dx/d*f*.42;y+=dy/d*f*.42;z+=Math.sin(s*30+time*3)*f*.34}}
-  arr[k]+=(x-arr[k])*.12;arr[k+1]+=(y-arr[k+1])*.12;arr[k+2]+=(z-arr[k+2])*.12}
- geo.attributes.position.needsUpdate=true;if(drag){group.rotation.y+=vel.y;group.rotation.x+=vel.x;vel.x*=.92;vel.y*=.92}else{group.rotation.y+=reduced?0:.0012+vel.y;group.rotation.x+=vel.x;vel.x*=.94;vel.y*=.94}
- group.rotation.x+=( -.12-group.rotation.x)*.008;group.position.x+=(mouse.x*.12-group.position.x)*.025;renderer.render(scene,camera);
- document.querySelectorAll('.forty i').forEach((d,i)=>d.classList.toggle('on',active>=2&&i<Math.round(8+(morph-.66)*94)))}
-animate(0);
-addEventListener('scroll',()=>{const max=document.documentElement.scrollHeight-innerHeight,p=max?scrollY/max:0;document.querySelector('#railFill').style.height=(p*100)+'%'},{passive:true});
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));renderer.setSize(innerWidth,innerHeight)});
+function release(){drag=false;clearTimeout(hold);document.querySelector('#holdMessage').classList.remove('show')}addEventListener('pointerup',release);addEventListener('pointercancel',release);
+const scenes=[...document.querySelectorAll('.scene')],sceneNo=document.querySelector('#sceneNo');let active=0;new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>.48){active=+e.target.dataset.scene;targetMorph=active/3;sceneNo.textContent='0'+(active+1)}}),{threshold:[.48,.65]}).observe(scenes[0]);const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>.48){active=+e.target.dataset.scene;targetMorph=active/3;sceneNo.textContent='0'+(active+1)}}),{threshold:[.48,.65]});scenes.forEach(s=>obs.observe(s));
+const forty=document.querySelector('#forty');for(let i=0;i<40;i++){let d=document.createElement('i');forty.appendChild(d)}
+function frame(ms){requestAnimationFrame(frame);morph+=(targetMorph-morph)*.02;if(!drag){vy+=(.0012-vy)*.025;vx*=.94}else{vx*=.96;vy*=.96}if(!reduced){rx+=vx;ry+=vy}rx+=(-.12-rx)*.006;gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.uniform1f(ut,ms*.001);gl.uniform1f(um,morph);gl.uniform1f(ua,innerWidth/innerHeight);gl.uniform1f(urx,rx);gl.uniform1f(ury,ry);gl.uniform2f(ums,reduced?99:mouse.x,reduced?99:mouse.y);gl.drawArrays(gl.POINTS,0,N);document.querySelectorAll('.forty i').forEach((d,i)=>d.classList.toggle('on',active>=2&&i<Math.max(0,Math.min(40,Math.round(8+(morph-.66)*94)))))}requestAnimationFrame(frame);
+addEventListener('scroll',()=>{let max=document.documentElement.scrollHeight-innerHeight,p=max?scrollY/max:0;document.querySelector('#railFill').style.height=p*100+'%'},{passive:true});
