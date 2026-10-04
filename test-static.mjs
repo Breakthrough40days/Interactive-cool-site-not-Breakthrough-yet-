@@ -44,3 +44,8 @@ if(!app.includes("markDiscovery")||!app.includes("mind.best")||!app.includes("ki
 if(!app.includes("shadowDelay")||!app.includes("shadowMode")||!app.includes("creature-trust"))fail('autonomous shadow or creature relationship missing');
 if(!app.includes("mind.quality.fps")||!app.includes("mind.quality.tier"))fail('adaptive performance controller missing');
 if(app.includes("safeJSON('impossible-room-v1')if")||app.includes("||nullif("))fail('Room statement-boundary syntax regression');
+
+if(!app.includes("hypothesisCandidates")||!app.includes("event('alternatives'"))fail('competing hypothesis engine missing');
+if(!app.includes("priorLast")||!app.includes("capability_failure"))fail('cross-visit decay or permission recovery missing');
+if(!app.includes("orb.spin")||!app.includes("orb.weight")||!app.includes("orb.sticky"))fail('advanced object material physics missing');
+if(!app.includes("setAttribute('data-phase'")||!app.includes("OPENING THE ROOM"))fail('experience-stage focus/startup feedback missing');
