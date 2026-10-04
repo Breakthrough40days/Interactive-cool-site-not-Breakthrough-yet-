@@ -28,11 +28,11 @@ function initRoom(){
  function loop(t){if(!run)return;ctx.fillStyle='rgba(3,5,5,.20)';ctx.fillRect(0,0,o.w,o.h);
   if(an){let f=new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(f);voice=f.reduce((a,b)=>a+b,0)/f.length/255;let speaking=voice>.14;if(speaking&&!lastVoice){memory.voice++;save();if(phase<5)setStage(5,'YOUR VOICE HAS MASS','Your voice is pushing the same matter your hands touched.','SPEAK · THEN CATCH WHAT MOVES')}lastVoice=speaking}
   if(mask){ctx.save();ctx.globalAlpha=.07+.04*Math.sin(t*.001);ctx.drawImage(mask,0,0,o.w,o.h);ctx.globalCompositeOperation='source-in';ctx.fillStyle='#f2b84b';ctx.fillRect(0,0,o.w,o.h);ctx.restore()}
-  if(!matter.length)for(let k=0;k<1300;k++)matter.push({x:rnd(o.w),y:rnd(o.h),vx:0,vy:0,z:Math.random(),held:-1});
+  if(!matter.length)for(let k=0;k<650;k++)matter.push({x:rnd(o.w),y:rnd(o.h),vx:0,vy:0,z:Math.random(),held:-1});
   for(let qi=0;qi<matter.length;qi++){let q=matter[qi];q.vy+=(voice-.055)*-.05;q.vx+=Math.sin(t*.001+q.y*.012+q.z*4)*.0025;
    if(q.held>=0){let h=hs[q.held];if(h&&h.pinch){q.x+=(h.x-q.x)*.32;q.y+=(h.y-q.y)*.32;q.vx=h.vx;q.vy=h.vy}else{if(h){q.vx+=h.vx*.5;q.vy+=h.vy*.5;if(Math.hypot(h.vx,h.vy)>18){memory.throws++;if(memory.throws===1){memory.learned.push('THROW');save();flash('THE ROOM LEARNED YOUR THROW')}}}q.held=-1}}
    for(let hi=0;hi<hs.length;hi++){let h=hs[hi],dx=q.x-h.x,dy=q.y-h.y,d=Math.hypot(dx,dy)||1;if(h.pinch&&d<55&&q.held<0&&qi%5===0){q.held=hi;if(!memory.learned.includes('PINCH')){memory.learned.push('PINCH');save()}}else if(d<145){let f=(1-d/145)*(h.open>.65?1.05:.35);q.vx+=dx/d*f+h.vx*.018;q.vy+=dy/d*f+h.vy*.018}}
-   q.vx*=.984;q.vy*=.984;q.x+=q.vx;q.y+=q.vy;if(q.x<0)q.x=o.w;if(q.x>o.w)q.x=0;if(q.y<0)q.y=o.h;if(q.y>o.h)q.y=0;ctx.fillStyle=q.held>=0?'rgba(255,222,137,.95)':'rgba(242,184,75,'+(.07+q.z*.64)+')';ctx.beginPath();ctx.arc(q.x,q.y,.55+q.z*2.2,0,7);ctx.fill()}
+   q.vx*=.982;q.vy*=.982;q.x+=q.vx*.78;q.y+=q.vy*.78;if(q.x<0)q.x=o.w;if(q.x>o.w)q.x=0;if(q.y<0)q.y=o.h;if(q.y>o.h)q.y=0;ctx.fillStyle=q.held>=0?'rgba(255,222,137,.95)':'rgba(242,184,75,'+(.07+q.z*.64)+')';ctx.beginPath();ctx.arc(q.x,q.y,1.15+q.z*3.25,0,7);ctx.fill()}
   if(still>55&&phase>=2&&phase<6)setStage(6,'IT NOTICES STILLNESS.','The room is not only watching gestures. It notices when you stop.','DON’T MOVE');
   RAF=requestAnimationFrame(loop)}loop(0);cleanup=()=>{run=false;save();stream?.getTracks().forEach(t=>t.stop());try{seg?.close();hands?.close();audio?.close()}catch{}}
 }
