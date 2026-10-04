@@ -130,11 +130,11 @@ function initBody(){
    if(v.readyState>=2){ctx.save();ctx.translate(o.w,0);ctx.scale(-1,1);ctx.globalAlpha=.24;ctx.filter='grayscale(1) contrast(1.35) brightness(.75)';ctx.drawImage(v,0,0,o.w,o.h);ctx.restore();ctx.filter='none';ctx.globalAlpha=1}
    const max=gpuMatter?1200:(innerWidth<700?6500:12000),n=gpuMatter?3:(mode==='storm'?55:mode==='light'?24:38);for(let k=0;k<n&&particles.length<max;k++)particles.push({x:Math.random()*o.w,y:-20-rnd(80),vx:rnd(mode==='storm'?6:.8,mode==='storm'?-6:-.8),vy:rnd(5,1),r:mode==='light'?rnd(2.6,1.2):rnd(2,.7),held:null});
    for(let i=particles.length-1;i>=0;i--){let p=particles[i];
-     if(p.held!=null&&handStates[p.held]){let h=handStates[p.held];if(p.pinch){p.x=h.pinchX;p.y=h.pinchY}else{p.x=h.x+p.ox*.34;p.y=h.y+p.oy*.34}p.vx=h.vx;p.vy=h.vy}
+     if(p.held!=null&&handStates[p.held]){let h=handStates[p.held];if(p.pinch){p.x=h.pinchX;p.y=h.pinchY}else{p.x=h.x+p.ox*.3;p.y=h.y+p.oy*.3}p.vx=h.vx;p.vy=h.vy;let oi=handStates.findIndex((q,j)=>j!==p.held&&q&&q.closed&&Math.hypot(p.x-q.x,p.y-q.y)<q.size*.34);if(oi>=0&&!p.pinch){let prev=p.held,other=handStates[oi];p.held=oi;p.ox=p.x-other.x;p.oy=p.y-other.y;handStates[prev].caught=handStates[prev].caught.filter(x=>x!==p);other.caught.push(p)}}
      else{p.vy+=mode==='light'?.012:.075;let nx=p.x+p.vx,ny=p.y+p.vy,hit=solid(nx,ny);
        for(const h of handStates){if(!h)continue;
        for(const chain of fingerChains){for(let z=1;z<chain.length;z++){let a=h.pts[chain[z-1]],b=h.pts[chain[z]],abx=b.x-a.x,aby=b.y-a.y,l2=abx*abx+aby*aby||1,u=clamp(((nx-a.x)*abx+(ny-a.y)*aby)/l2,0,1),qx=a.x+abx*u,qy=a.y+aby*u,dx=nx-qx,dy=ny-qy,d=Math.hypot(dx,dy)||1;if(d<9){p.vx+=dx/d*.8+h.vx*.12;p.vy+=dy/d*.8+h.vy*.12;hit=true}}}
-       let dx=nx-h.x,dy=ny-h.y,d=Math.hypot(dx,dy)||1;if(d<h.size*.62&&!h.closed){let f=(1-d/(h.size*.62))*.75;p.vx+=dx/d*f+h.vx*.045;p.vy+=dy/d*f+h.vy*.045}
+       let dx=nx-h.x,dy=ny-h.y,d=Math.hypot(dx,dy)||1;if(d<h.size*.72&&!h.closed){let cup=h.cup||0;if(cup>.38&&ny<h.y+h.size*.3){p.vx+=(h.x-nx)*.006*cup+h.vx*.05;p.vy+=(h.y-ny)*.004*cup+h.vy*.04;p.vy+=.018*(1-cup)}else{let f=(1-d/(h.size*.72))*.75;p.vx+=dx/d*f+h.vx*.045;p.vy+=dy/d*f+h.vy*.045}}
      }
        if(pointer.on){let dx=nx-pointer.x,dy=ny-pointer.y,d=Math.hypot(dx,dy)||1;if(d<100){let f=(1-d/100)*2;p.vx+=dx/d*f;p.vy+=dy/d*f;hit=true}}
        if(hit){let L=solid(nx-7,ny),R=solid(nx+7,ny);if(!L)p.vx-=.45;else if(!R)p.vx+=.45;else{p.vx+=rnd(.6,-.6);p.vy=-Math.abs(p.vy)*.14}}else{p.x=nx;p.y=ny}
