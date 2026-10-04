@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const app=fs.readFileSync('app.js','utf8'),html=fs.readFileSync('index.html','utf8'),gpu=fs.readFileSync('gpu-matter.js','utf8');
+const fail=m=>{throw new Error(m)};
+if(!app.startsWith("const $=s=>document.querySelector(s),all=s=>"))fail('selector helpers broken');
+for(const id of ['home','body','trails','voice','move','future','mirror'])if(!html.includes('id="'+id+'"'))fail('missing route '+id);
+for(const id of ['bodyStart','micBtn','motionBtn','buildBtn','mirrorStart','shareLab','passPanel'])if(!html.includes('id="'+id+'"')||!app.includes("'#"+id+"'"))fail('unwired control '+id);
+if(!html.includes('@mediapipe/hands/hands.js')||!html.includes('@mediapipe/selfie_segmentation/selfie_segmentation.js'))fail('vision libraries missing');
+if(!gpu.includes('device.lost')||!gpu.includes('cancelAnimationFrame(raf)'))fail('GPU lifecycle guard missing');
+if(!app.includes('CLAP SHOCKWAVE')||!app.includes('PALM WIND'))fail('BODY gesture physics missing');
+if(!app.includes('bt-artifact-seed')||!app.includes('totals:{'))fail('artifact lineage missing');
+console.log('Static invariants OK');
