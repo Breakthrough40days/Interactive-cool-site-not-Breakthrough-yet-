@@ -49,3 +49,9 @@ The current client now includes foreground body compositing, adaptive discovery,
 
 ### Definition of done for experiential features
 A feature is not considered complete merely because a code path exists. It must have a visible consequence, a discoverable interaction, a fallback when the required capability is absent, cleanup when the visitor leaves the route, and a regression invariant where practical. Claims about AI understanding remain explicitly tentative and scoped to behavior observed inside the Room.
+
+
+## 100-point refinement pass
+The Room now treats quality as a system rather than a feature count. The pass tightened physical interaction, object inertia/material mutation, four-direction prediction, autonomous delayed shadow behavior, creature trust/fear continuity, explicit discoveries and surprises, competing hypotheses, counter-evidence, cross-visit confidence decay, best-moment selection, session highlight artifacts, adaptive simulation load, capability failure recovery, startup/retry states, mobile visual hierarchy, persistent episodic state, and regression invariants.
+
+The intended experience remains discovery-first: a visitor should encounter consequences before instructions, the Room should distinguish observations from tentative interpretations, and surprising behavior should emerge from changed rules rather than arbitrary visual noise.
