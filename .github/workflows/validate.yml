@@ -15,7 +15,7 @@ jobs:
           node-version: 22
           cache: npm
       - name: Install
-        run: npm ci
+        run: npm install
       - name: Static and production build
         run: npm run validate
       - name: Install Chromium
