@@ -1,1 +1,16 @@
-{"name":"breakthrough-wow","private":true,"version":"2.1.0","type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview --host 0.0.0.0"},"dependencies":{"vite":"^7.1.7"}}
+{
+  "name": "breakthrough-wow",
+  "private": true,
+  "version": "2.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "check": "node --check app.js && node --check gpu-matter.js",
+    "validate": "npm run check && npm run build"
+  },
+  "dependencies": {
+    "vite": "^7.1.7"
+  }
+}
