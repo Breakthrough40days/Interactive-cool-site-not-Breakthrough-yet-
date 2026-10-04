@@ -98,6 +98,8 @@ function initBody(){
  const v=$('#bodyVideo'),c=$('#bodyCanvas'),mc=$('#bodyMask'),o=fit(c),ctx=o.ctx,mx=mc.getContext('2d',{willReadFrequently:true});mc.width=160;mc.height=120;
  let run=true,stream,seg=null,handsModel=null,gpuMatter=null,mask=null,particles=[],mode='sand',lastVision=0,pointer={x:o.w*.5,y:o.h*.5,on:false},bodyTracking=false,handStates=[],visionBusy=false;
  const palmIds=[0,5,9,13,17],tipIds=[4,8,12,16,20],fingerChains=[[0,1,2,3,4],[0,5,6,7,8],[0,9,10,11,12],[0,13,14,15,16],[0,17,18,19,20]];
+ function jointAngle(p,a,b,c){let A=p[a],B=p[b],C=p[c],ux=A.x-B.x,uy=A.y-B.y,vx=C.x-B.x,vy=C.y-B.y,d=(ux*vx+uy*vy)/(Math.hypot(ux,uy)*Math.hypot(vx,vy)||1);return Math.acos(clamp(d,-1,1))}
+ function fistScore(p){return [jointAngle(p,5,6,8),jointAngle(p,9,10,12),jointAngle(p,13,14,16),jointAngle(p,17,18,20)].filter(a=>a<1.5).length/4}
  function solid(x,y){if(!mask||x<0||y<0||x>=o.w||y>=o.h)return false;let X=clamp(Math.floor(x/o.w*160),0,159),Y=clamp(Math.floor(y/o.h*120),0,119);return mask[(Y*160+X)*4]>90}
  function pm(e){let r=c.getBoundingClientRect();pointer={x:e.clientX-r.left,y:e.clientY-r.top,on:true}}function pl(){pointer.on=false}c.addEventListener('pointermove',pm);c.addEventListener('pointerleave',pl);
  function handFromLandmarks(lm,index){
@@ -106,7 +108,7 @@ function initBody(){
    const handSize=Math.max(45,Math.hypot(pts[5].x-pts[17].x,pts[5].y-pts[17].y)*1.65);
    const tipSpread=tipIds.slice(1).reduce((s,i)=>s+Math.hypot(pts[i].x-palm.x,pts[i].y-palm.y),0)/4;
    const pinchDist=Math.hypot(pts[4].x-pts[8].x,pts[4].y-pts[8].y),pinching=pinchDist<handSize*.32;
-   const closed=tipSpread<handSize*.72;
+   const fScore=fistScore(pts),closed=fScore>=.72||(tipSpread<handSize*.64&&fScore>=.5);
    let old=handStates[index]||{x:palm.x,y:palm.y,vx:0,vy:0,closed:false,caught:[]};
    old.vx=(palm.x-old.x)*.7+old.vx*.3;old.vy=(palm.y-old.y)*.7+old.vy*.3;old.x=palm.x;old.y=palm.y;old.size=handSize;old.pts=pts;old.pinchX=(pts[4].x+pts[8].x)/2;old.pinchY=(pts[4].y+pts[8].y)/2;old.pinching=pinching;
    if(closed&&!old.closed){let caught=0;for(const p of particles){if(p.held==null&&Math.hypot(p.x-palm.x,p.y-palm.y)<handSize*.85){p.held=index;p.ox=p.x-palm.x;p.oy=p.y-palm.y;old.caught.push(p);caught++}}if(caught){flash('GRABBED '+caught+' PARTICLES')}}
