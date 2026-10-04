@@ -12,5 +12,6 @@ if(!app.includes('CLAP SHOCKWAVE')||!app.includes('PALM WIND'))fail('BODY gestur
 if(!app.includes('bt-artifact-seed')||!app.includes('totals:{'))fail('artifact lineage missing');
 if(!app.includes("impossible-room-v1")||!app.includes("THE ROOM REMEMBERS YOU"))fail('Room memory missing');
 if(!app.includes("memory.learned.push('THROW')")||!app.includes("memory.learned.push('PINCH')"))fail('Room learned gestures missing');
+if(!app.includes("CUSTOM:")||!app.includes("SOMETHING LEARNED YOU")||!app.includes("pred.push"))fail('Room adaptive intelligence missing');
 if(!html.includes('id="roomPass"')||!html.includes('id="roomMemory"'))fail('Room lineage UI missing');
 console.log('Static invariants OK');
