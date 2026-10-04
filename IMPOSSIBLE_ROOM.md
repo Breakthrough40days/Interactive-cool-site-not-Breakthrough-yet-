@@ -42,3 +42,10 @@ Set `OPENAI_API_KEY` only in the server environment. Optional `OPENAI_ROOM_MODEL
 
 ## Realtime shared physics
 A client protocol is intentionally not presented as live until a signaling/state relay exists. Production implementation requires an authoritative realtime backend (WebSocket/WebRTC signaling), room IDs, clock synchronization, ownership transfer, reconnect semantics, abuse controls, and tests across two devices. The current PASS IT system is asynchronous inheritance.
+
+
+## Quality pass
+The current client now includes foreground body compositing, adaptive discovery, contradiction memory, confidence decay, persistent creature temperament, two-hand deformation, session replay, behavioral fingerprinting, bounded AI requests, resilient local storage, background-tab throttling, WebGPU uniform isolation, responsive controls, and expanded static regression guards.
+
+### Definition of done for experiential features
+A feature is not considered complete merely because a code path exists. It must have a visible consequence, a discoverable interaction, a fallback when the required capability is absent, cleanup when the visitor leaves the route, and a regression invariant where practical. Claims about AI understanding remain explicitly tentative and scoped to behavior observed inside the Room.
