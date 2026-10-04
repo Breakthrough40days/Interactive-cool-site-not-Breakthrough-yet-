@@ -73,7 +73,7 @@ function initMove(){
 function initFuture(){
  const c=$('#futureCanvas'),o=fit(c),ctx=o.ctx;let run=true,burst=0;
  let state=JSON.parse(localStorage.getItem('future-v3')||'null')||{action:'',start:'',days:[]};
- const today=()=>new Date().toISOString().slice(0,10),pts=Array.from({length:1800},()=>({seed:Math.random(),a:Math.random()*6.28,j:Math.random(),side:Math.random()>.5?1:-1}));
+ const today=()=>{let d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day},pts=Array.from({length:1800},()=>({seed:Math.random(),a:Math.random()*6.28,j:Math.random(),side:Math.random()>.5?1:-1}));
  function sync(){state.days=[...new Set(state.days)].sort().slice(-40);let d=state.days.length;$('#dayLabel').textContent='DAY '+String(d).padStart(2,'0')+' / 40';$('#futureAction').value=state.action||'';$('#futureStatus').textContent=d&&state.days.includes(today())?'TODAY IS ALREADY PART OF THE FIGURE. COME BACK TOMORROW.':d?'LAST MARK: '+state.days.at(-1):'ONE REAL DAY AT A TIME.';let pf=$('#progressFill');if(pf)pf.style.width=(d/40*100)+'%';return d}
  sync();
  $('#buildBtn').onclick=()=>{let action=$('#futureAction').value.trim();if(!action){$('#futureAction').focus();return}state.action=action;if(!state.start)state.start=today();if(state.days.includes(today())){flash('TODAY ALREADY EXISTS');return}state.days.push(today());localStorage.setItem('future-v3',JSON.stringify(state));burst=1;let d=sync();flash(d===40?'FORTY REAL DAYS':'DAY '+d+' EXISTS NOW')};
