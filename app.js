@@ -1,5 +1,5 @@
+const $=s=>document.querySelector(s),$=s=>[...document.querySelectorAll(s)];
 let diagFrames=0,diagLast=performance.now();function diagTick(){diagFrames++;let n=performance.now();if(n-diagLast>1000){let el=$('#diagFps');if(el)el.textContent=Math.round(diagFrames*1000/(n-diagLast))+' FPS';diagFrames=0;diagLast=n}requestAnimationFrame(diagTick)}requestAnimationFrame(diagTick);if(new URLSearchParams(location.search).has('debug'))$('#diagnostics')?.classList.add('on');
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 let cleanup=()=>{},RAF=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a=1,b=0)=>b+Math.random()*(a-b);
 function fit(c,read=false){const d=Math.min(devicePixelRatio||1,1.6),r=c.getBoundingClientRect(),ctx=c.getContext('2d',read?{willReadFrequently:true}:undefined);c.width=Math.max(1,r.width*d);c.height=Math.max(1,r.height*d);ctx.setTransform(d,0,0,d,0,0);return{ctx,w:r.width,h:r.height,d}}
