@@ -3,10 +3,11 @@ let cleanup=()=>{},RAF=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a=1,b=0)=>b+Math.random()*(a-b);
 function fit(c,read=false){const d=Math.min(devicePixelRatio||1,1.6),r=c.getBoundingClientRect(),ctx=c.getContext('2d',read?{willReadFrequently:true}:undefined);c.width=Math.max(1,r.width*d);c.height=Math.max(1,r.height*d);ctx.setTransform(d,0,0,d,0,0);return{ctx,w:r.width,h:r.height,d}}
 function stop(){cancelAnimationFrame(RAF);cleanup();cleanup=()=>{}}
-function route(){stop();const id=location.hash.slice(1)||'home';$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('nav a').forEach(a=>a.classList.toggle('on',a.hash==='#'+id));$('#nav')?.classList.remove('open');({home:initHome,body:initBody,trails:initTrails,voice:initVoice,move:initMove,future:initFuture,mirror:initMirror}[id]||(()=>{}))();document.body.dataset.world=id}
+function route(){stop();const id=location.hash.slice(1)||'home';artifactState();$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('nav a').forEach(a=>a.classList.toggle('on',a.hash==='#'+id));$('#nav')?.classList.remove('open');({home:initHome,body:initBody,trails:initTrails,voice:initVoice,move:initMove,future:initFuture,mirror:initMirror}[id]||(()=>{}))();document.body.dataset.world=id}
 addEventListener('hashchange',route);$('#menu').onclick=()=>$('#nav').classList.toggle('open');
 
-function flash(text){let el=document.createElement('div');el.className='impact';el.textContent=text;document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),500)},850)}
+function status(text){let t=$('#toast');if(!t)return;t.textContent=text;t.classList.add('on');clearTimeout(status.t);status.t=setTimeout(()=>t.classList.remove('on'),1800)}
+function flash(text){status(text);let el=document.createElement('div');el.className='impact';el.textContent=text;document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),500)},850)}
 
 function initHome(){
  const c=$('#homeCanvas'),o=fit(c),ctx=o.ctx;let run=true,p={x:o.w*.72,y:o.h*.48},target={...p},down=false,t=0;
@@ -105,7 +106,7 @@ function initBody(){
    let old=handStates[index]||{x:palm.x,y:palm.y,vx:0,vy:0,closed:false,caught:[]};
    old.vx=(palm.x-old.x)*.7+old.vx*.3;old.vy=(palm.y-old.y)*.7+old.vy*.3;old.x=palm.x;old.y=palm.y;old.size=handSize;old.pts=pts;old.pinchX=(pts[4].x+pts[8].x)/2;old.pinchY=(pts[4].y+pts[8].y)/2;old.pinching=pinching;
    if(closed&&!old.closed){let caught=0;for(const p of particles){if(p.held==null&&Math.hypot(p.x-palm.x,p.y-palm.y)<handSize*.85){p.held=index;p.ox=p.x-palm.x;p.oy=p.y-palm.y;old.caught.push(p);caught++}}if(caught){flash('GRABBED '+caught+' PARTICLES')}}
-   if(!closed&&old.closed){for(const p of old.caught){if(p.held===index){p.held=null;p.vx=old.vx*.65+rnd(1,-1);p.vy=old.vy*.65+rnd(1,-1)}}if(old.caught.length)flash('THROWN');old.caught=[]}
+   if(!closed&&old.closed){if(Math.hypot(old.vx,old.vy)>18)gpuMatter?.burst(Math.min(.9,Math.hypot(old.vx,old.vy)/55));for(const p of old.caught){if(p.held===index){p.held=null;p.vx=old.vx*.65+rnd(1,-1);p.vy=old.vy*.65+rnd(1,-1)}}if(old.caught.length)flash('THROWN');old.caught=[]}
    if(pinching&&!old.wasPinching){let nearest=null,nd=handSize*.5;for(const p of particles){if(p.held==null){let d=Math.hypot(p.x-old.pinchX,p.y-old.pinchY);if(d<nd){nearest=p;nd=d}}}if(nearest){nearest.held=index;nearest.pinch=true;nearest.ox=0;nearest.oy=0;old.caught.push(nearest);flash('PINCHED ONE')}}
    if(!pinching&&old.wasPinching){for(const p of old.caught.filter(p=>p.pinch)){p.held=null;p.pinch=false;p.vx=old.vx*.9;p.vy=old.vy*.9}old.caught=old.caught.filter(p=>!p.pinch)}
    old.wasPinching=pinching;old.closed=closed;return old;
