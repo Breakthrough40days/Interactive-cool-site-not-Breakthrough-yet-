@@ -83,3 +83,17 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
 @media(max-width:760px){#roomMind{max-height:31vh;overflow:auto}.roomActions{max-width:42vw;max-height:24vh;overflow:auto}.roomActions button{padding:7px 9px}#roomMemory{bottom:3vh}.roomHUD>p:not(.eyebrow){display:none}}
 @media(max-height:650px){#roomMind{top:76px;padding:10px 12px}#roomTranscript{display:none}.roomActions{bottom:10px}#roomMemory{display:none}}
 @media(prefers-reduced-motion:reduce){#roomForeground,#bodyForeground{filter:none}.impact{display:none}}
+
+/* 100-point experiential refinement */
+#room.roomActive .roomHUD{transition:opacity .6s}
+#room.roomActive[data-phase="1"] .roomActions{opacity:.18}
+#roomCanvas,#roomForeground,#roomVideo{will-change:transform,opacity}
+#roomStage b{letter-spacing:.035em}
+#roomPrompt{max-width:46ch;text-wrap:balance}
+#roomHint{letter-spacing:.14em}
+#roomMind:has(#roomReply:not([hidden])){border-color:rgba(242,184,75,.4)}
+#roomTranscript>div:first-child{opacity:1}
+#roomTranscript>div{opacity:.55;transition:opacity .25s}
+#roomMemory{backdrop-filter:blur(12px)}
+@supports not (backdrop-filter:blur(2px)){#roomMemory,#roomMind{background:rgba(5,8,7,.88)}}
+@media(max-width:560px){#roomMind{width:calc(100vw - 24px);left:12px;right:12px}#roomStage{max-width:65vw}.roomActions{right:8px}.roomActions button{font-size:9px}}
