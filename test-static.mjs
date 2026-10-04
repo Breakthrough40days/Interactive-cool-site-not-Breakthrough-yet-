@@ -39,3 +39,8 @@ if(!gpu.includes('Float32Array(32)')||!gpu.includes('imp:vec4f')||gpu.includes('
 if(!app.includes('safeJSON')||!app.includes('storeJSON')||!app.includes('document.hidden'))fail('runtime resilience guards missing');
 if(!app.includes('handFrames')||!app.includes('failedGrabs')||!app.includes('edgeVisits'))fail('embodied telemetry missing');
 if(!app.includes('AbortController')||!app.includes('6500'))fail('Room AI timeout missing');
+
+if(!app.includes("markDiscovery")||!app.includes("mind.best")||!app.includes("kind:'rule-break'"))fail('discovery/surprise/highlight engine missing');
+if(!app.includes("shadowDelay")||!app.includes("shadowMode")||!app.includes("creature-trust"))fail('autonomous shadow or creature relationship missing');
+if(!app.includes("mind.quality.fps")||!app.includes("mind.quality.tier"))fail('adaptive performance controller missing');
+if(app.includes("safeJSON('impossible-room-v1')if")||app.includes("||nullif("))fail('Room statement-boundary syntax regression');
