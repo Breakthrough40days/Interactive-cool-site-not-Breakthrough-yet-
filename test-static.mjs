@@ -19,3 +19,5 @@ if(!html.includes('id="roomPass"')||!html.includes('id="roomMemory"'))fail('Room
 console.log('Static invariants OK');
 
 if(!html.includes('roomMind')||!app.includes('runHypothesis')||!app.includes('Correction accepted')||!app.includes('CONFIDENCE '))fail('Room reasoning feedback loop missing');
+
+if(!app.includes("mind.rule==='resist'")||!app.includes("mind.rule==='patience'")||!app.includes("event('hypothesis'")||!app.includes("events:mind.events.slice(-30)"))fail('Room hypotheses do not control physics or persist evidence');
