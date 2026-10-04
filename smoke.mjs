@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
-const server=spawn(process.platform==='win32'?'npx.cmd':'npx',['vite','preview','--host','127.0.0.1','--port','4173'],{stdio:'ignore'});
+const server=spawn(process.platform==='win32'?'npx.cmd':'npx',['vite','--host','127.0.0.1','--port','4173'],{stdio:'ignore'});
 const wait=ms=>new Promise(r=>setTimeout(r,ms)); await wait(1800);
 const browser=await chromium.launch({headless:true,args:['--enable-unsafe-webgpu','--enable-features=Vulkan,UseSkiaRenderer']});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
