@@ -24,7 +24,7 @@ jobs:
           grep -q "WebApplication" index.html
           grep -q "prefers-reduced-motion" styles.css
       - name: Runtime smoke test
-        run: node smoke.mjs
+        run: npm run test:runtime
       - name: Production bundle budget
         run: |
           test $(du -sk dist | cut -f1) -lt 1800
