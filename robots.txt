@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Sitemap: https://40daysuccess.com/interactive/sitemap.xml
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
