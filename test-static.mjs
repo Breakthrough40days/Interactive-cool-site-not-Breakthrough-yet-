@@ -90,3 +90,5 @@ if(html.includes('@mediapipe/face_mesh'))fail('obsolete FaceMesh runtime should 
 if(!app.includes("event('voice_inflection'")||!app.includes('voiceMoments'))fail('vocal delivery perception missing');
 
 if(!app.includes('estimatePitch')||!app.includes("observe('voice-pitch'"))fail('vocal pitch perception missing');
+
+if(!perception.includes('PoseLandmarker')||!perception.includes('pose_landmarker_full'))fail('full-body model perception missing');
