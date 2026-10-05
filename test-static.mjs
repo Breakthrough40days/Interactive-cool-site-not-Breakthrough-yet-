@@ -74,3 +74,6 @@ if(gpu.includes('let d=')||gpu.includes('normalize(d)'))fail('WGSL identifier ha
 if(!app.includes("encounter('touch'")||!app.includes("encounter('remember'")||!app.includes("encounter('anticipate'")||!app.includes("encounter('connect'"))fail('five-beat Room choreography missing');
 if(!app.includes("ctx.globalAlpha=behind ? .16 : 1"))fail('creature body occlusion missing');
 if(!css.includes('[data-encounter="touch"]')||!css.includes('[data-encounter="connect"]'))fail('encounter visual grammar missing');
+
+if(!app.startsWith("import {RoomState,roomQuality} from './room/engine.js';"))fail('Room engine module boundary missing');
+if(!app.includes("classList.add('awakened','fallback')")||!css.includes('.room.fallback'))fail('intentional capability fallback missing');
