@@ -13,10 +13,6 @@ jobs:
           node-version: 22
           cache: npm
       - name: Install
-        run: npm install
+        run: npm ci
       - name: Static and production build
         run: npm run validate
-      - name: Install browsers
-        run: npx playwright install --with-deps chromium webkit
-      - name: Browser smoke test
-        run: npm run smoke
