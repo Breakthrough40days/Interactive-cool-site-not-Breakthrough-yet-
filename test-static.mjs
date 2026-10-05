@@ -92,3 +92,9 @@ if(!app.includes("event('voice_inflection'")||!app.includes('voiceMoments'))fail
 if(!app.includes('estimatePitch')||!app.includes("observe('voice-pitch'"))fail('vocal pitch perception missing');
 
 if(!perception.includes('PoseLandmarker')||!perception.includes('pose_landmarker_full'))fail('full-body model perception missing');
+
+if(!perception.includes('faceSamples')||!perception.includes('faceBase'))fail('visitor-calibrated facial perception missing');
+if(!perception.includes("You widened your eyes.")||!perception.includes("You puckered your lips."))fail('expanded facial action vocabulary missing');
+if(!perception.includes("You moved closer.")||!perception.includes("You moved farther away."))fail('body distance perception missing');
+if(!perception.includes("You turned your head."))fail('head orientation perception missing');
+if(!app.includes("speech-stop")||!app.includes("pitchHz>70&&pitchHz<420"))fail('robust speech event perception missing');
