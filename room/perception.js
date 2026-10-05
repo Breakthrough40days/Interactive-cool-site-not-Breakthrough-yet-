@@ -59,9 +59,11 @@ async function createPerception({onObservation,onHands,onFace,onStatus}={}){
    const fr=face.detectForVideo(video,now),cats=fr.faceBlendshapes?.[0]?.categories||[],map=Object.fromEntries(cats.map(x=>[x.categoryName,x.score]));
    if(cats.length){
     const [name,score]=topFace(map);onFace?.({name,score,blendshapes:map,landmarks:fr.faceLandmarks?.[0],matrix:fr.facialTransformationMatrixes?.[0]});
-    const threshold=name==='blink'?.72:name==='smile'?.52:.58;
-    if(score>threshold){faceFrames=name===lastFace?faceFrames+1:1;lastFace=name}else{faceFrames=Math.max(0,faceFrames-1);if(faceFrames===0)lastFace=''}
-    if(faceFrames===4&&now-lastFaceAt>3500){lastFaceAt=now;emit('face',name==='smile'?'You smiled.':name==='blink'?'You blinked.':`I saw your ${name}.`,score,{blendshape:name})}
+    if(!faceBase){faceSamples.push(map);if(faceSamples.length>=30){faceBase={};for(const k of Object.keys(map))faceBase[k]=faceSamples.reduce((s,x)=>s+(x[k]||0),0)/faceSamples.length}return}
+    const delta=n=>(map[n]||0)-(faceBase[n]||0),davg=(...n)=>n.reduce((s,k)=>s+delta(k),0)/n.length;
+    const events=[['smile',davg('mouthSmileLeft','mouthSmileRight')>.20,'You smiled.',.82],['brows',Math.max(delta('browInnerUp'),davg('browOuterUpLeft','browOuterUpRight'))>.20,'You raised your eyebrows.',.8],['wide',davg('eyeWideLeft','eyeWideRight')>.23,'You widened your eyes.',.78],['squint',davg('eyeSquintLeft','eyeSquintRight')>.25,'You squinted.',.78],['jaw',delta('jawOpen')>.26,'You opened your mouth.',.82],['pucker',delta('mouthPucker')>.28,'You puckered your lips.',.8],['frown',davg('mouthFrownLeft','mouthFrownRight')>.24,'You frowned.',.76],['puff',delta('cheekPuff')>.28,'You puffed your cheeks.',.78]];
+    for(const [key,on,text,conf] of events)if(held('face-'+key,on,4)&&now-lastFaceAt>2200){lastFaceAt=now;emit('face',text,conf,{blendshape:key})}
+    if(held('face-blink',avg(map,'eyeBlinkLeft','eyeBlinkRight')>.72,2)&&now-lastFaceAt>1800){lastFaceAt=now;emit('face','You blinked.',.9,{blendshape:'blink'})}
    }
    if(pose&&now-lastPoseAt>90){lastPoseAt=now;let pr=pose.detectForVideo(video,now),p=pr.landmarks?.[0];if(p){let shoulders=(p[11].y+p[12].y)/2,wrists=[p[15],p[16]],arms=wrists.filter(w=>w.visibility>.5&&w.y<shoulders-.06).length;if(arms===2&&!poseState.arms){emit('pose','You raised both arms.',.8,{pose:'both-arms-up'})}else if(arms===1&&!poseState.arms){emit('pose','You raised an arm.',.75,{pose:'one-arm-up'})}poseState.arms=arms>0;let midShoulder=(p[11].x+p[12].x)/2,midHip=(p[23].x+p[24].x)/2,lean=midShoulder-midHip;let dir=lean>.055?'right':lean<-.055?'left':'';if(dir&&dir!==poseState.lean){emit('pose',`You leaned ${dir}.`,.72,{pose:'lean-'+dir})}poseState.lean=dir}}}
    const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);
