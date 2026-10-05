@@ -72,5 +72,6 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
    if(best&&gestureFrames===3&&now-lastGestureAt>3000){lastGestureAt=now;emit('gesture',gestureText[best.categoryName]||`I recognized ${best.categoryName.replaceAll('_',' ').toLowerCase()}.`,best.score,{gesture:best.categoryName})}
   }catch{}
  };
- return {ready:true,process,close:()=>{try{face?.close()}catch{}try{gesture?.close()}catch{}try{pose?.close()}catch{}}};
+ const close=()=>{try{if(face)face.close();}catch(err){}try{if(gesture)gesture.close();}catch(err){}try{if(pose)pose.close();}catch(err){}};
+ return {ready:true,process,close};
 }
