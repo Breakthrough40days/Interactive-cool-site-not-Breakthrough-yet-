@@ -125,3 +125,26 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
 .room.fallback #roomVideo{opacity:.08}
 .room.fallback #roomHint{color:rgba(242,184,75,.78)}
 .room.lite #roomMind::before{content:"LIMITED VISION";display:block;margin-bottom:8px;color:rgba(242,184,75,.72);font:500 8px 'DM Mono';letter-spacing:.16em}
+
+/* Room composition repair: keep the human and impossible event unobstructed */
+.room.awakened .roomHUD,.roomHUD.started{opacity:0!important;visibility:hidden;transform:translateY(-58%) scale(.985);pointer-events:none!important}
+.room.awakened #roomStage{top:86px;right:28px;width:auto;max-width:260px;padding:8px 0;border:0;background:transparent;opacity:.72}
+.room.awakened #roomStage span{font-size:12px}.room.awakened #roomStage b{font-size:7px}
+.room.awakened #roomMind{left:28px;right:auto;top:116px;width:min(360px,29vw);max-height:min(46vh,420px);overflow:auto;padding:15px 17px;background:linear-gradient(135deg,rgba(4,7,7,.84),rgba(4,7,7,.58));border-color:rgba(242,184,75,.2);box-shadow:0 18px 70px rgba(0,0,0,.2)}
+.room.awakened #roomMind small{font-size:8px;opacity:.76}
+.room.awakened #roomMind p{font-size:clamp(13px,1.05vw,16px);line-height:1.42;margin:8px 0}
+.room.awakened #roomTranscript{max-height:92px;overflow:auto}
+.room.awakened #roomTalk{margin-top:10px}
+.room.awakened #roomTalk input{min-width:0}
+.room.awakened #roomMemory{left:28px;right:auto;bottom:28px;width:min(370px,32vw);text-align:left;padding:9px 0;opacity:.6}
+.room.awakened .roomControlsToggle{right:28px;bottom:26px}
+.room.awakened .roomActions{right:28px;left:auto;bottom:72px;width:min(330px,34vw);display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px;background:rgba(4,7,7,.8);border:1px solid rgba(255,255,255,.1);border-radius:14px;backdrop-filter:blur(18px)}
+.room.awakened .roomActions button{width:100%;white-space:normal;line-height:1.25;min-height:34px}
+.room.awakened #roomHint{bottom:24px;left:50%;right:auto;transform:translateX(-50%);font-size:8px;letter-spacing:.14em;max-width:34vw}
+@media(max-width:900px){
+ .room.awakened #roomMind{left:4vw;top:92px;width:min(390px,72vw);max-height:34vh}
+ .room.awakened #roomMemory{display:none}
+ .room.awakened #roomStage{top:76px;right:4vw}
+ .room.awakened .roomActions{right:4vw;width:min(360px,82vw);grid-template-columns:1fr}
+ .room.awakened #roomHint{left:4vw;right:4vw;transform:none;max-width:none;text-align:left;bottom:24px}
+}
