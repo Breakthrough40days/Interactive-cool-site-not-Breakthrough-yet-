@@ -83,7 +83,10 @@ if(!app.includes("encounter('observe'")||!app.includes("encounter('claim'")||!ap
 if(!html.includes('FIRST MEETING')||!html.includes('WHY DO YOU THINK THAT?'))fail('meeting UI language missing');
 if(!css.includes('[data-encounter="claim"]')||!css.includes('[data-encounter="revise"]'))fail('meeting visual progression missing');
 
-if(!html.includes('@mediapipe/face_mesh'))fail('facial landmark perception dependency missing');
-if(!app.includes('onFace')||!app.includes("event('expression'"))fail('facial expression change perception missing');
-if(!app.includes('detectHeart')||!app.includes('HEART HANDS'))fail('spontaneous two-hand gesture recognition missing');
+const perception=readFileSync('room/perception.js','utf8');
+if(!perception.includes('@mediapipe/tasks-vision@1.0.1')||!perception.includes('outputFaceBlendshapes:true'))fail('model-native face blendshape perception missing');
+if(!perception.includes('GestureRecognizer')||!perception.includes('heartScore'))fail('model-native and custom gesture perception missing');
+if(html.includes('@mediapipe/face_mesh'))fail('obsolete FaceMesh runtime should not ship');
 if(!app.includes("event('voice_inflection'")||!app.includes('voiceMoments'))fail('vocal delivery perception missing');
+
+if(!app.includes('estimatePitch')||!app.includes("observe('voice-pitch'"))fail('vocal pitch perception missing');
