@@ -83,6 +83,9 @@ if(!app.includes("encounter('observe'")||!app.includes("encounter('claim'")||!ap
 if(!html.includes('OBSERVING'))fail('observation-first Room UI language missing');
 if(!css.includes('[data-encounter="claim"]')||!css.includes('[data-encounter="revise"]'))fail('meeting visual progression missing');
 
+const composer=readFileSync('room/event-composer.js','utf8');
+if(!composer.includes('class EventComposer')||!composer.includes("this.frames")||!composer.includes("hands-together"))fail('temporal multimodal event composer missing');
+if(!html.includes('/room/event-composer.js'))fail('event composer runtime missing');
 const perception=readFileSync('room/perception.js','utf8');
 if(!perception.includes('@mediapipe/tasks-vision@1.0.1')||!perception.includes('outputFaceBlendshapes:true'))fail('model-native face blendshape perception missing');
 if(!perception.includes('GestureRecognizer')||!perception.includes('heartScore'))fail('model-native and custom gesture perception missing');
