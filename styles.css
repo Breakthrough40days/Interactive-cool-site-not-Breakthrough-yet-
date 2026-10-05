@@ -120,3 +120,8 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
 .room .roomMind{max-width:min(410px,42vw)}
 .room .roomThought{font-size:clamp(15px,1.35vw,21px);line-height:1.42}
 @media(max-width:760px){.room .roomMind{max-width:90vw}.room .roomThought{font-size:15px}}
+
+.room.fallback #roomCanvas{filter:grayscale(.55) contrast(1.15) brightness(.72)}
+.room.fallback #roomVideo{opacity:.08}
+.room.fallback #roomHint{color:rgba(242,184,75,.78)}
+.room.lite #roomMind::before{content:"LIMITED VISION";display:block;margin-bottom:8px;color:rgba(242,184,75,.72);font:500 8px 'DM Mono';letter-spacing:.16em}
