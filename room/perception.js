@@ -51,7 +51,7 @@ async function createPerception({onObservation,onHands,onFace,onStatus}={}){
   return Math.max(0,Math.min(1,proximity+(indexBent>.45?.08:0)));
  };
  let heartFrames=0,lastHeartAt=0;
- let lastPoseAt=0,poseState={arms:false,lean:''};
+ let lastPoseAt=0,poseState={arms:false,lean:'',shoulder:0,centerX:0,centerY:0,lastMove:0};
  const process=(video,now=performance.now())=>{
   if(!ready||!video||video.readyState<2||video.currentTime===lastVideoTime)return;
   lastVideoTime=video.currentTime;
@@ -65,7 +65,10 @@ async function createPerception({onObservation,onHands,onFace,onStatus}={}){
     for(const [key,on,text,conf] of events)if(held('face-'+key,on,4)&&now-lastFaceAt>2200){lastFaceAt=now;emit('face',text,conf,{blendshape:key})}
     if(held('face-blink',avg(map,'eyeBlinkLeft','eyeBlinkRight')>.72,2)&&now-lastFaceAt>1800){lastFaceAt=now;emit('face','You blinked.',.9,{blendshape:'blink'})}
    }
-   if(pose&&now-lastPoseAt>90){lastPoseAt=now;let pr=pose.detectForVideo(video,now),p=pr.landmarks?.[0];if(p){let shoulders=(p[11].y+p[12].y)/2,wrists=[p[15],p[16]],arms=wrists.filter(w=>w.visibility>.5&&w.y<shoulders-.06).length;if(arms===2&&!poseState.arms){emit('pose','You raised both arms.',.8,{pose:'both-arms-up'})}else if(arms===1&&!poseState.arms){emit('pose','You raised an arm.',.75,{pose:'one-arm-up'})}poseState.arms=arms>0;let midShoulder=(p[11].x+p[12].x)/2,midHip=(p[23].x+p[24].x)/2,lean=midShoulder-midHip;let dir=lean>.055?'right':lean<-.055?'left':'';if(dir&&dir!==poseState.lean){emit('pose',`You leaned ${dir}.`,.72,{pose:'lean-'+dir})}poseState.lean=dir}}}
+   if(pose&&now-lastPoseAt>90){lastPoseAt=now;let pr=pose.detectForVideo(video,now),p=pr.landmarks?.[0];if(p){let shoulders=(p[11].y+p[12].y)/2,wrists=[p[15],p[16]],arms=wrists.filter(w=>w.visibility>.5&&w.y<shoulders-.06).length;if(arms===2&&!poseState.arms){emit('pose','You raised both arms.',.8,{pose:'both-arms-up'})}else if(arms===1&&!poseState.arms){emit('pose','You raised an arm.',.75,{pose:'one-arm-up'})}poseState.arms=arms>0;let midShoulder=(p[11].x+p[12].x)/2,midHip=(p[23].x+p[24].x)/2,lean=midShoulder-midHip;let dir=lean>.055?'right':lean<-.055?'left':'';if(dir&&dir!==poseState.lean){emit('pose',`You leaned ${dir}.`,.72,{pose:'lean-'+dir})}poseState.lean=dir;
+let sw=Math.abs(p[11].x-p[12].x),cx=(p[11].x+p[12].x+p[23].x+p[24].x)/4,cy=(p[11].y+p[12].y+p[23].y+p[24].y)/4;
+if(poseState.shoulder){let ratio=sw/poseState.shoulder;if(held('closer',ratio>1.13,3))emit('pose','You moved closer.',.76,{pose:'closer'});if(held('farther',ratio<.88,3))emit('pose','You moved farther away.',.76,{pose:'farther'});let dx=cx-poseState.centerX,dy=cy-poseState.centerY;if(Math.hypot(dx,dy)>.055&&now-poseState.lastMove>3000){poseState.lastMove=now;emit('pose',Math.abs(dx)>Math.abs(dy)?(dx>0?'You moved to the right.':'You moved to the left.'):(dy>0?'You moved down.':'You moved up.'),.72,{pose:'body-move'})}}
+poseState.shoulder=poseState.shoulder?poseState.shoulder*.92+sw*.08:sw;poseState.centerX=cx;poseState.centerY=cy}}}
    const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);
    const hs=heartScore(gr.landmarks);heartFrames=hs>.60?heartFrames+1:Math.max(0,heartFrames-2);
    if(heartFrames===4&&now-lastHeartAt>7000){lastHeartAt=now;emit('gesture','You made a heart with your hands.',hs,{gesture:'Heart'})}
