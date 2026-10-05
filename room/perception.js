@@ -74,3 +74,4 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
  };
  return {ready:true,process,close:()=>{try{face?.close()}catch{}try{gesture?.close()}catch{}try{pose?.close()}catch{}}};
 }
+}
