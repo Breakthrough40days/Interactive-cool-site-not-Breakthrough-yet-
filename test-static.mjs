@@ -77,3 +77,8 @@ if(!css.includes('[data-encounter="touch"]')||!css.includes('[data-encounter="co
 
 if(!app.startsWith("import {RoomState,roomQuality} from './room/engine.js';"))fail('Room engine module boundary missing');
 if(!app.includes("classList.add('awakened','fallback')")||!css.includes('.room.fallback'))fail('intentional capability fallback missing');
+
+if(!app.includes("meetingClaims")||!app.includes("recordClaim")||!app.includes("WHAT SURVIVED"))fail('coherent AI-meets-human learning model missing');
+if(!app.includes("encounter('observe'")||!app.includes("encounter('claim'")||!app.includes("encounter('test'")||!app.includes("encounter('predict'"))fail('meeting progression missing');
+if(!html.includes('FIRST MEETING')||!html.includes('WHY DO YOU THINK THAT?'))fail('meeting UI language missing');
+if(!css.includes('[data-encounter="claim"]')||!css.includes('[data-encounter="revise"]'))fail('meeting visual progression missing');
