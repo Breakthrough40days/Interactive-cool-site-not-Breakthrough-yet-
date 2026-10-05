@@ -25,7 +25,7 @@ const topFace=(m)=>{
 };
 const gestureText={Closed_Fist:'You made a fist.',Open_Palm:'You opened your palm.',Pointing_Up:'You pointed upward.',Thumb_Down:'You gave a thumbs down.',Thumb_Up:'You gave a thumbs up.',Victory:'You made a victory sign.',ILoveYou:'You made the I-love-you hand sign.'};
 
-export async function createPerception({onObservation,onHands,onFace,onStatus}={}){
+async function createPerception({onObservation,onHands,onFace,onStatus}={}){
  let face,gesture,pose,lastVideoTime=-1,lastFace='',lastGesture='',faceFrames=0,gestureFrames=0,lastFaceAt=0,lastGestureAt=0,ready=false;
  const emit=(kind,text,confidence,detail={})=>onObservation?.({kind,text,confidence,detail,at:performance.now()});
  try{
@@ -75,3 +75,4 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
  const close=()=>{try{if(face)face.close();}catch(err){}try{if(gesture)gesture.close();}catch(err){}try{if(pose)pose.close();}catch(err){}};
  return {ready:true,process,close};
 }
+window.RoomPerception={createPerception};
