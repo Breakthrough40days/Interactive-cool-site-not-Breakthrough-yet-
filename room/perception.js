@@ -27,7 +27,7 @@ const gestureText={Closed_Fist:'You made a fist.',Open_Palm:'You opened your pal
 
 async function createPerception({onObservation,onHands,onFace,onStatus}={}){
  let face,gesture,pose,lastVideoTime=-1,lastFace='',lastGesture='',faceFrames=0,gestureFrames=0,lastFaceAt=0,lastGestureAt=0,ready=false,faceSamples=[],faceBase=null,lastFaceRun=0,lastHandRun=0,lastPoseRun=0;const stable=new Map();
- const emit=(kind,text,confidence,detail={})=>{if(confidence<.68)return;onObservation?.({kind,text,confidence,detail,at:performance.now()})};const held=(key,on,need=3)=>{let n=stable.get(key)||0;n=on?Math.min(need+2,n+1):Math.max(0,n-2);stable.set(key,n);return n===need};
+ const composer=window.RoomEventComposer?new window.RoomEventComposer.EventComposer({emit:x=>onObservation?.(x)}):null;const emit=(kind,text,confidence,detail={})=>{if(confidence<.68)return;onObservation?.({kind,text,confidence,detail,at:performance.now()})};const held=(key,on,need=3)=>{let n=stable.get(key)||0;n=on?Math.min(need+2,n+1):Math.max(0,n-2);stable.set(key,n);return n===need};
  try{
   const mp=await import(/* @vite-ignore */VISION);
   const vision=await mp.FilesetResolver.forVisionTasks(WASM);
@@ -58,7 +58,7 @@ async function createPerception({onObservation,onHands,onFace,onStatus}={}){
   try{
    const fr=face.detectForVideo(video,now),cats=fr.faceBlendshapes?.[0]?.categories||[],map=Object.fromEntries(cats.map(x=>[x.categoryName,x.score]));
    if(cats.length){
-    const [name,score]=topFace(map);onFace?.({name,score,blendshapes:map,landmarks:fr.faceLandmarks?.[0],matrix:fr.facialTransformationMatrixes?.[0]});
+    const [name,score]=topFace(map);const facePacket={name,score,blendshapes:map,landmarks:fr.faceLandmarks?.[0],matrix:fr.facialTransformationMatrixes?.[0]};onFace?.(facePacket);
     if(!faceBase){faceSamples.push(map);if(faceSamples.length>=30){faceBase={};for(const k of Object.keys(map))faceBase[k]=faceSamples.reduce((s,x)=>s+(x[k]||0),0)/faceSamples.length}return}
     const delta=n=>(map[n]||0)-(faceBase[n]||0),davg=(...n)=>n.reduce((s,k)=>s+delta(k),0)/n.length;
     const events=[['smile',davg('mouthSmileLeft','mouthSmileRight')>.20,'You smiled.',.82],['brows',Math.max(delta('browInnerUp'),davg('browOuterUpLeft','browOuterUpRight'))>.20,'You raised your eyebrows.',.8],['wide',davg('eyeWideLeft','eyeWideRight')>.23,'You widened your eyes.',.78],['squint',davg('eyeSquintLeft','eyeSquintRight')>.25,'You squinted.',.78],['jaw',delta('jawOpen')>.26,'You opened your mouth.',.82],['pucker',delta('mouthPucker')>.28,'You puckered your lips.',.8],['frown',davg('mouthFrownLeft','mouthFrownRight')>.24,'You frowned.',.76],['puff',delta('cheekPuff')>.28,'You puffed your cheeks.',.78]];
@@ -66,11 +66,11 @@ async function createPerception({onObservation,onHands,onFace,onStatus}={}){
     if(held('face-blink',avg(map,'eyeBlinkLeft','eyeBlinkRight')>.72,2)&&now-lastFaceAt>1800){lastFaceAt=now;emit('face','You blinked.',.9,{blendshape:'blink'})}
     let lm=fr.faceLandmarks?.[0];if(lm){let left=lm[234],right=lm[454],nose=lm[1],eyesY=(lm[33].y+lm[263].y)/2,chin=lm[152],fw=Math.max(.01,Math.abs(right.x-left.x)),fh=Math.max(.01,Math.abs(chin.y-eyesY)),yaw=((nose.x-(left.x+right.x)/2)/fw),pitch=(nose.y-eyesY)/fh;if(held('head-left',yaw<-.10,4))emit('face','You turned your head.',.76,{blendshape:'head-turn'});if(held('head-right',yaw>.10,4))emit('face','You turned your head.',.76,{blendshape:'head-turn'});if(held('head-down',pitch>.44,4))emit('face','You tilted your head down.',.72,{blendshape:'head-down'})}
    }
-   if(pose&&now-lastPoseRun>125){lastPoseRun=now;let pr=pose.detectForVideo(video,now),p=pr.landmarks?.[0];if(p){let shoulders=(p[11].y+p[12].y)/2,wrists=[p[15],p[16]],arms=wrists.filter(w=>w.visibility>.5&&w.y<shoulders-.06).length;if(arms===2&&!poseState.arms){emit('pose','You raised both arms.',.8,{pose:'both-arms-up'})}else if(arms===1&&!poseState.arms){emit('pose','You raised an arm.',.75,{pose:'one-arm-up'})}poseState.arms=arms>0;let midShoulder=(p[11].x+p[12].x)/2,midHip=(p[23].x+p[24].x)/2,lean=midShoulder-midHip;let dir=lean>.055?'right':lean<-.055?'left':'';if(dir&&dir!==poseState.lean){emit('pose',`You leaned ${dir}.`,.72,{pose:'lean-'+dir})}poseState.lean=dir;
+   if(pose&&now-lastPoseRun>125){lastPoseRun=now;let pr=pose.detectForVideo(video,now),p=pr.landmarks?.[0];if(p){composer?.push('pose',{landmarks:p},now);let shoulders=(p[11].y+p[12].y)/2,wrists=[p[15],p[16]],arms=wrists.filter(w=>w.visibility>.5&&w.y<shoulders-.06).length;if(arms===2&&!poseState.arms){emit('pose','You raised both arms.',.8,{pose:'both-arms-up'})}else if(arms===1&&!poseState.arms){emit('pose','You raised an arm.',.75,{pose:'one-arm-up'})}poseState.arms=arms>0;let midShoulder=(p[11].x+p[12].x)/2,midHip=(p[23].x+p[24].x)/2,lean=midShoulder-midHip;let dir=lean>.055?'right':lean<-.055?'left':'';if(dir&&dir!==poseState.lean){emit('pose',`You leaned ${dir}.`,.72,{pose:'lean-'+dir})}poseState.lean=dir;
 let sw=Math.abs(p[11].x-p[12].x),cx=(p[11].x+p[12].x+p[23].x+p[24].x)/4,cy=(p[11].y+p[12].y+p[23].y+p[24].y)/4;
 if(poseState.shoulder){let ratio=sw/poseState.shoulder;if(held('closer',ratio>1.13,3))emit('pose','You moved closer.',.76,{pose:'closer'});if(held('farther',ratio<.88,3))emit('pose','You moved farther away.',.76,{pose:'farther'});let dx=cx-poseState.centerX,dy=cy-poseState.centerY;if(Math.hypot(dx,dy)>.055&&now-poseState.lastMove>3000){poseState.lastMove=now;emit('pose',Math.abs(dx)>Math.abs(dy)?(dx>0?'You moved to the right.':'You moved to the left.'):(dy>0?'You moved down.':'You moved up.'),.72,{pose:'body-move'})}}
 poseState.shoulder=poseState.shoulder?poseState.shoulder*.92+sw*.08:sw;poseState.centerX=cx;poseState.centerY=cy}}}
-   const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);
+   const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);composer?.push('hands',{landmarks:gr.landmarks,gestures:gr.gestures},now);
    const hs=heartScore(gr.landmarks);heartFrames=hs>.60?heartFrames+1:Math.max(0,heartFrames-2);
    if(heartFrames===4&&now-lastHeartAt>7000){lastHeartAt=now;emit('gesture','You made a heart with your hands.',hs,{gesture:'Heart'})}
    const best=(gr.gestures||[]).map(x=>x?.[0]).filter(x=>x&&x.categoryName!=='None').sort((a,b)=>b.score-a.score)[0];
@@ -78,7 +78,7 @@ poseState.shoulder=poseState.shoulder?poseState.shoulder*.92+sw*.08:sw;poseState
    if(best&&gestureFrames===3&&now-lastGestureAt>3800){lastGestureAt=now;emit('gesture',gestureText[best.categoryName]||`I recognized ${best.categoryName.replaceAll('_',' ').toLowerCase()}.`,best.score,{gesture:best.categoryName})}
   }catch{}
  };
- const close=()=>{try{if(face)face.close();}catch(err){}try{if(gesture)gesture.close();}catch(err){}try{if(pose)pose.close();}catch(err){}};
- return {ready:true,process,close};
+ const summary=()=>composer?.summary?.()||{};const close=()=>{try{if(face)face.close();}catch(err){}try{if(gesture)gesture.close();}catch(err){}try{if(pose)pose.close();}catch(err){}};
+ return {ready:true,process,close,summary};
 }
 window.RoomPerception={createPerception};
