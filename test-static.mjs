@@ -70,3 +70,7 @@ if(!html.includes('id="roomControlsToggle"')||!html.includes('aria-hidden="true"
 if(!app.includes("classList.add('awakened')")||!app.includes('mind._pinching')||!app.includes('mind._atEdge'))fail('Room choreography telemetry regression');
 if(!html.includes('@mediapipe/hands@0.4.1675469240')||!app.includes('@mediapipe/selfie_segmentation@0.1.1675465747'))fail('browser vision dependencies must be pinned');
 if(gpu.includes('let d=')||gpu.includes('normalize(d)'))fail('WGSL identifier hardening regression');
+
+if(!app.includes("encounter('touch'")||!app.includes("encounter('remember'")||!app.includes("encounter('anticipate'")||!app.includes("encounter('connect'"))fail('five-beat Room choreography missing');
+if(!app.includes("ctx.globalAlpha=behind ? .16 : 1"))fail('creature body occlusion missing');
+if(!css.includes('[data-encounter="touch"]')||!css.includes('[data-encounter="connect"]'))fail('encounter visual grammar missing');
