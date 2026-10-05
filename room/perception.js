@@ -67,11 +67,11 @@ async function createPerception({onObservation,onHands,onFace,onStatus}={}){
    }
    if(pose&&now-lastPoseAt>90){lastPoseAt=now;let pr=pose.detectForVideo(video,now),p=pr.landmarks?.[0];if(p){let shoulders=(p[11].y+p[12].y)/2,wrists=[p[15],p[16]],arms=wrists.filter(w=>w.visibility>.5&&w.y<shoulders-.06).length;if(arms===2&&!poseState.arms){emit('pose','You raised both arms.',.8,{pose:'both-arms-up'})}else if(arms===1&&!poseState.arms){emit('pose','You raised an arm.',.75,{pose:'one-arm-up'})}poseState.arms=arms>0;let midShoulder=(p[11].x+p[12].x)/2,midHip=(p[23].x+p[24].x)/2,lean=midShoulder-midHip;let dir=lean>.055?'right':lean<-.055?'left':'';if(dir&&dir!==poseState.lean){emit('pose',`You leaned ${dir}.`,.72,{pose:'lean-'+dir})}poseState.lean=dir}}}
    const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);
-   const hs=heartScore(gr.landmarks);heartFrames=hs>.68?heartFrames+1:Math.max(0,heartFrames-2);
-   if(heartFrames===5&&now-lastHeartAt>7000){lastHeartAt=now;emit('gesture','You made a heart with your hands.',hs,{gesture:'Heart'})}
+   const hs=heartScore(gr.landmarks);heartFrames=hs>.60?heartFrames+1:Math.max(0,heartFrames-2);
+   if(heartFrames===4&&now-lastHeartAt>7000){lastHeartAt=now;emit('gesture','You made a heart with your hands.',hs,{gesture:'Heart'})}
    const best=(gr.gestures||[]).map(x=>x?.[0]).filter(x=>x&&x.categoryName!=='None').sort((a,b)=>b.score-a.score)[0];
-   if(best&&best.score>.62){gestureFrames=best.categoryName===lastGesture?gestureFrames+1:1;lastGesture=best.categoryName}else{gestureFrames=Math.max(0,gestureFrames-1);if(!gestureFrames)lastGesture=''}
-   if(best&&gestureFrames===3&&now-lastGestureAt>3000){lastGestureAt=now;emit('gesture',gestureText[best.categoryName]||`I recognized ${best.categoryName.replaceAll('_',' ').toLowerCase()}.`,best.score,{gesture:best.categoryName})}
+   if(best&&best.score>.70){gestureFrames=best.categoryName===lastGesture?gestureFrames+1:1;lastGesture=best.categoryName}else{gestureFrames=Math.max(0,gestureFrames-1);if(!gestureFrames)lastGesture=''}
+   if(best&&gestureFrames===3&&now-lastGestureAt>3800){lastGestureAt=now;emit('gesture',gestureText[best.categoryName]||`I recognized ${best.categoryName.replaceAll('_',' ').toLowerCase()}.`,best.score,{gesture:best.categoryName})}
   }catch{}
  };
  const close=()=>{try{if(face)face.close();}catch(err){}try{if(gesture)gesture.close();}catch(err){}try{if(pose)pose.close();}catch(err){}};
