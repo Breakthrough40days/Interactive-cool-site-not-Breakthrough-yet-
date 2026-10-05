@@ -5,6 +5,7 @@ const VISION='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm';
 const WASM='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm';
 const FACE='https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 const GESTURE='https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task';
+const POSE='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
 
 const avg=(m,...names)=>names.reduce((s,n)=>s+(m[n]||0),0)/names.length;
 const topFace=(m)=>{
@@ -25,7 +26,7 @@ const topFace=(m)=>{
 const gestureText={Closed_Fist:'You made a fist.',Open_Palm:'You opened your palm.',Pointing_Up:'You pointed upward.',Thumb_Down:'You gave a thumbs down.',Thumb_Up:'You gave a thumbs up.',Victory:'You made a victory sign.',ILoveYou:'You made the I-love-you hand sign.'};
 
 export async function createPerception({onObservation,onHands,onFace,onStatus}={}){
- let face,gesture,lastVideoTime=-1,lastFace='',lastGesture='',faceFrames=0,gestureFrames=0,lastFaceAt=0,lastGestureAt=0,ready=false;
+ let face,gesture,pose,lastVideoTime=-1,lastFace='',lastGesture='',faceFrames=0,gestureFrames=0,lastFaceAt=0,lastGestureAt=0,ready=false;
  const emit=(kind,text,confidence,detail={})=>onObservation?.({kind,text,confidence,detail,at:performance.now()});
  try{
   const mp=await import(/* @vite-ignore */VISION);
@@ -36,7 +37,7 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
   const gopts={runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.55,minHandPresenceConfidence:.55,minTrackingConfidence:.55};
   try{gesture=await mp.GestureRecognizer.createFromOptions(vision,{baseOptions:{modelAssetPath:GESTURE,delegate:'GPU'},...gopts})}
   catch{gesture=await mp.GestureRecognizer.createFromOptions(vision,{baseOptions:{modelAssetPath:GESTURE,delegate:'CPU'},...gopts})}
-  ready=true;onStatus?.('MODEL PERCEPTION READY');
+  try{pose=await mp.PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:POSE,delegate:'GPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.55})}catch{try{pose=await mp.PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:POSE,delegate:'CPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.55})}catch{pose=null}}ready=true;onStatus?.('MODEL PERCEPTION READY');
  }catch(err){onStatus?.('MODEL PERCEPTION UNAVAILABLE');return {ready:false,process:()=>{},close:()=>{},error:err}}
 
  const heartScore=(hands)=>{
@@ -50,6 +51,7 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
   return Math.max(0,Math.min(1,proximity+(indexBent>.45?.08:0)));
  };
  let heartFrames=0,lastHeartAt=0;
+ let lastPoseAt=0,poseState={arms:false,lean:''};
  const process=(video,now=performance.now())=>{
   if(!ready||!video||video.readyState<2||video.currentTime===lastVideoTime)return;
   lastVideoTime=video.currentTime;
@@ -61,6 +63,7 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
     if(score>threshold){faceFrames=name===lastFace?faceFrames+1:1;lastFace=name}else{faceFrames=Math.max(0,faceFrames-1);if(faceFrames===0)lastFace=''}
     if(faceFrames===4&&now-lastFaceAt>3500){lastFaceAt=now;emit('face',name==='smile'?'You smiled.':name==='blink'?'You blinked.':`I saw your ${name}.`,score,{blendshape:name})}
    }
+   if(pose&&now-lastPoseAt>90){lastPoseAt=now;let pr=pose.detectForVideo(video,now),p=pr.landmarks?.[0];if(p){let shoulders=(p[11].y+p[12].y)/2,wrists=[p[15],p[16]],arms=wrists.filter(w=>w.visibility>.5&&w.y<shoulders-.06).length;if(arms===2&&!poseState.arms){emit('pose','You raised both arms.',.8,{pose:'both-arms-up'})}else if(arms===1&&!poseState.arms){emit('pose','You raised an arm.',.75,{pose:'one-arm-up'})}poseState.arms=arms>0;let midShoulder=(p[11].x+p[12].x)/2,midHip=(p[23].x+p[24].x)/2,lean=midShoulder-midHip;let dir=lean>.055?'right':lean<-.055?'left':'';if(dir&&dir!==poseState.lean){emit('pose',`You leaned ${dir}.`,.72,{pose:'lean-'+dir})}poseState.lean=dir}}}
    const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);
    const hs=heartScore(gr.landmarks);heartFrames=hs>.68?heartFrames+1:Math.max(0,heartFrames-2);
    if(heartFrames===5&&now-lastHeartAt>7000){lastHeartAt=now;emit('gesture','You made a heart with your hands.',hs,{gesture:'Heart'})}
@@ -69,5 +72,5 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
    if(best&&gestureFrames===3&&now-lastGestureAt>3000){lastGestureAt=now;emit('gesture',gestureText[best.categoryName]||`I recognized ${best.categoryName.replaceAll('_',' ').toLowerCase()}.`,best.score,{gesture:best.categoryName})}
   }catch{}
  };
- return {ready:true,process,close:()=>{try{face?.close()}catch{}try{gesture?.close()}catch{}}};
+ return {ready:true,process,close:()=>{try{face?.close()}catch{}try{gesture?.close()}catch{}try{pose?.close()}catch{}}};
 }
