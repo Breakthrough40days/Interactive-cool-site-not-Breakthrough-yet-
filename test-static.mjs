@@ -82,3 +82,8 @@ if(!app.includes("meetingClaims")||!app.includes("recordClaim")||!app.includes("
 if(!app.includes("encounter('observe'")||!app.includes("encounter('claim'")||!app.includes("encounter('test'")||!app.includes("encounter('predict'"))fail('meeting progression missing');
 if(!html.includes('FIRST MEETING')||!html.includes('WHY DO YOU THINK THAT?'))fail('meeting UI language missing');
 if(!css.includes('[data-encounter="claim"]')||!css.includes('[data-encounter="revise"]'))fail('meeting visual progression missing');
+
+if(!html.includes('@mediapipe/face_mesh'))fail('facial landmark perception dependency missing');
+if(!app.includes('onFace')||!app.includes("event('expression'"))fail('facial expression change perception missing');
+if(!app.includes('detectHeart')||!app.includes('HEART HANDS'))fail('spontaneous two-hand gesture recognition missing');
+if(!app.includes("event('voice_inflection'")||!app.includes('voiceMoments'))fail('vocal delivery perception missing');
