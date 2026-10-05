@@ -26,8 +26,8 @@ const topFace=(m)=>{
 const gestureText={Closed_Fist:'You made a fist.',Open_Palm:'You opened your palm.',Pointing_Up:'You pointed upward.',Thumb_Down:'You gave a thumbs down.',Thumb_Up:'You gave a thumbs up.',Victory:'You made a victory sign.',ILoveYou:'You made the I-love-you hand sign.'};
 
 async function createPerception({onObservation,onHands,onFace,onStatus}={}){
- let face,gesture,pose,lastVideoTime=-1,lastFace='',lastGesture='',faceFrames=0,gestureFrames=0,lastFaceAt=0,lastGestureAt=0,ready=false;
- const emit=(kind,text,confidence,detail={})=>onObservation?.({kind,text,confidence,detail,at:performance.now()});
+ let face,gesture,pose,lastVideoTime=-1,lastFace='',lastGesture='',faceFrames=0,gestureFrames=0,lastFaceAt=0,lastGestureAt=0,ready=false,faceSamples=[],faceBase=null;const stable=new Map();
+ const emit=(kind,text,confidence,detail={})=>{if(confidence<.68)return;onObservation?.({kind,text,confidence,detail,at:performance.now()})};const held=(key,on,need=3)=>{let n=stable.get(key)||0;n=on?Math.min(need+2,n+1):Math.max(0,n-2);stable.set(key,n);return n===need};
  try{
   const mp=await import(/* @vite-ignore */VISION);
   const vision=await mp.FilesetResolver.forVisionTasks(WASM);
