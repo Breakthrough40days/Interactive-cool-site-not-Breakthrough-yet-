@@ -148,3 +148,14 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
  .room.awakened .roomActions{right:4vw;width:min(360px,82vw);grid-template-columns:1fr}
  .room.awakened #roomHint{left:4vw;right:4vw;transform:none;max-width:none;text-align:left;bottom:24px}
 }
+
+/* The Room is one conversation, not a technology dashboard */
+#room[data-encounter="observe"] #roomCanvas{filter:saturate(.72) brightness(.88)}
+#room[data-encounter="claim"] #roomCanvas{filter:saturate(.88) brightness(.92)}
+#room[data-encounter="test"] #roomCanvas{filter:saturate(1.04) contrast(1.05)}
+#room[data-encounter="revise"] #roomCanvas{filter:saturate(.62) contrast(1.08)}
+#room[data-encounter="predict"] #roomCanvas{filter:saturate(1.12) contrast(1.08) brightness(.9)}
+.room.awakened #roomMind{border:0;border-left:1px solid rgba(242,184,75,.38);border-radius:0;background:linear-gradient(90deg,rgba(4,7,7,.72),rgba(4,7,7,.22));box-shadow:none}
+.room.awakened #roomMindLabel{color:var(--gold);letter-spacing:.15em}
+.room.awakened #roomConfidence:empty{display:none}
+.room.awakened #roomTalk{opacity:.72}.room.awakened #roomTalk:focus-within{opacity:1}
