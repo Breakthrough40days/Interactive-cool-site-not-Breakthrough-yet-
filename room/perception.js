@@ -39,6 +39,17 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
   ready=true;onStatus?.('MODEL PERCEPTION READY');
  }catch(err){onStatus?.('MODEL PERCEPTION UNAVAILABLE');return {ready:false,process:()=>{},close:()=>{},error:err}}
 
+ const heartScore=(hands)=>{
+  if(!hands||hands.length<2)return 0;
+  const p=(h,i)=>h[i],d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const a=hands[0],b=hands[1],sa=d(p(a,5),p(a,17)),sb=d(p(b,5),p(b,17)),s=Math.max(.025,(sa+sb)/2);
+  const index=d(p(a,8),p(b,8))/s,thumb=d(p(a,4),p(b,4))/s,palms=d(p(a,9),p(b,9))/s;
+  const indexBent=(d(p(a,8),p(a,6))+d(p(b,8),p(b,6)))/(2*s);
+  const symmetry=1-Math.min(1,Math.abs(p(a,9).y-p(b,9).y)/(s*1.2));
+  const proximity=Math.max(0,1-index/1.0)*.36+Math.max(0,1-thumb/1.05)*.36+Math.max(0,1-palms/3.2)*.12+symmetry*.16;
+  return Math.max(0,Math.min(1,proximity+(indexBent>.45?.08:0)));
+ };
+ let heartFrames=0,lastHeartAt=0;
  const process=(video,now=performance.now())=>{
   if(!ready||!video||video.readyState<2||video.currentTime===lastVideoTime)return;
   lastVideoTime=video.currentTime;
@@ -51,6 +62,8 @@ export async function createPerception({onObservation,onHands,onFace,onStatus}={
     if(faceFrames===4&&now-lastFaceAt>3500){lastFaceAt=now;emit('face',name==='smile'?'You smiled.':name==='blink'?'You blinked.':`I saw your ${name}.`,score,{blendshape:name})}
    }
    const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);
+   const hs=heartScore(gr.landmarks);heartFrames=hs>.68?heartFrames+1:Math.max(0,heartFrames-2);
+   if(heartFrames===5&&now-lastHeartAt>7000){lastHeartAt=now;emit('gesture','You made a heart with your hands.',hs,{gesture:'Heart'})}
    const best=(gr.gestures||[]).map(x=>x?.[0]).filter(x=>x&&x.categoryName!=='None').sort((a,b)=>b.score-a.score)[0];
    if(best&&best.score>.62){gestureFrames=best.categoryName===lastGesture?gestureFrames+1:1;lastGesture=best.categoryName}else{gestureFrames=Math.max(0,gestureFrames-1);if(!gestureFrames)lastGesture=''}
    if(best&&gestureFrames===3&&now-lastGestureAt>3000){lastGestureAt=now;emit('gesture',gestureText[best.categoryName]||`I recognized ${best.categoryName.replaceAll('_',' ').toLowerCase()}.`,best.score,{gesture:best.categoryName})}
