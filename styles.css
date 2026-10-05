@@ -109,3 +109,14 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
 .room.awakened #roomHint{right:auto;left:50%;transform:translateX(-50%);max-width:80vw;text-align:center;color:rgba(240,238,232,.62)}
 #roomStage{transition:opacity .45s ease}.room:not(.awakened) #roomStage{opacity:0}
 @media(max-width:800px){.roomControlsToggle{right:5vw;bottom:2vh}.roomActions{max-width:90vw}.room.awakened #roomHint{left:5vw;right:5vw;transform:none;max-width:none;text-align:left}}
+
+/* Five-beat visual grammar */
+#room[data-encounter="see"] #roomCanvas{filter:saturate(.72) brightness(.86)}
+#room[data-encounter="touch"] #roomCanvas{filter:saturate(.95) brightness(.94)}
+#room[data-encounter="remember"] #roomCanvas{filter:saturate(1.04) brightness(.96)}
+#room[data-encounter="anticipate"] #roomCanvas{filter:saturate(.82) contrast(1.08)}
+#room[data-encounter="connect"] #roomCanvas{filter:saturate(1.18) brightness(1.02)}
+#room[data-encounter] #roomCanvas{transition:filter 1.8s ease}
+.room .roomMind{max-width:min(410px,42vw)}
+.room .roomThought{font-size:clamp(15px,1.35vw,21px);line-height:1.42}
+@media(max-width:760px){.room .roomMind{max-width:90vw}.room .roomThought{font-size:15px}}
