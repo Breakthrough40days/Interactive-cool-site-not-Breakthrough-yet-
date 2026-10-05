@@ -1,9 +1,9 @@
 # Breakthrough Interactive Lab
 
-> Experimental browser experiences where human input becomes digital matter.
+> The Impossible Room is a browser-based embodied AI experience where digital matter sees, touches, remembers and begins to anticipate the person in front of it.
 
 ## Main experience
-- https://40daysuccess.com/interactive/ — Six interactive experiments using hand tracking, simulated particles, live audio analysis, device motion, persistent local touch traces, repeated-day visualization, and temporal camera effects.
+- https://40daysuccess.com/interactive/ — The Impossible Room is the flagship experience. Supporting lab experiments explore its component capabilities: body tracking, physical matter, voice, memory, device motion and temporal interaction.
 
 ## Experiments
 - Body + Matter: hand-tracked interaction with digital particles.
