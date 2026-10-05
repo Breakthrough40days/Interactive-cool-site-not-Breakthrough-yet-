@@ -65,3 +65,8 @@ if(!app.includes("mind.material==='smoke'")||!app.includes("mind.material==='liq
 if(!app.includes("shadowIndependent")||!app.includes("futureSelf"))fail('independent shadow or future-self missing');
 if(!app.includes("deliberateTests")||!app.includes("mind.boredom"))fail('intent or boredom intelligence missing');
 if(!app.includes("GEN ${inheritedState?.generation||1}")||!app.includes("<polyline points="))fail('lineage or movement-trace artifact missing');
+
+if(!html.includes('id="roomControlsToggle"')||!html.includes('aria-hidden="true"'))fail('progressive Room controls missing');
+if(!app.includes("classList.add('awakened')")||!app.includes('mind._pinching')||!app.includes('mind._atEdge'))fail('Room choreography telemetry regression');
+if(!html.includes('@mediapipe/hands@0.4.1675469240')||!app.includes('@mediapipe/selfie_segmentation@0.1.1675465747'))fail('browser vision dependencies must be pinned');
+if(gpu.includes('let d=')||gpu.includes('normalize(d)'))fail('WGSL identifier hardening regression');
