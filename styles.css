@@ -97,3 +97,15 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
 #roomMemory{backdrop-filter:blur(12px)}
 @supports not (backdrop-filter:blur(2px)){#roomMemory,#roomMind{background:rgba(5,8,7,.88)}}
 @media(max-width:560px){#roomMind{width:calc(100vw - 24px);left:12px;right:12px}#roomStage{max-width:65vw}.roomActions{right:8px}.roomActions button{font-size:9px}}
+
+/* Cinematic Room pass: the experience leads, interface follows */
+.roomHUD{transition:opacity .7s ease,transform .7s ease}.roomHUD.started{opacity:0;transform:translateY(-12px);pointer-events:none}
+#roomMind,#roomMemory,.roomActions{transition:opacity .45s ease,transform .45s ease}
+.room:not(.awakened) #roomMind,.room:not(.awakened) #roomMemory{opacity:0;pointer-events:none;transform:translateY(10px)}
+.roomActions{opacity:0;pointer-events:none;transform:translateY(10px)}
+.roomActions.open{opacity:1;pointer-events:auto;transform:none}
+.roomControlsToggle{position:absolute;z-index:24;right:2.8vw;bottom:3vh;border:1px solid var(--line);border-radius:99px;background:rgba(5,6,7,.56);backdrop-filter:blur(16px);color:#9ba09d;padding:10px 14px;font:500 8px 'DM Mono';letter-spacing:.15em;cursor:pointer;opacity:0;pointer-events:none;transition:.35s}
+.room.awakened .roomControlsToggle{opacity:.75;pointer-events:auto}.room.awakened .roomControlsToggle:hover{opacity:1;color:#fff}
+.room.awakened #roomHint{right:auto;left:50%;transform:translateX(-50%);max-width:80vw;text-align:center;color:rgba(240,238,232,.62)}
+#roomStage{transition:opacity .45s ease}.room:not(.awakened) #roomStage{opacity:0}
+@media(max-width:800px){.roomControlsToggle{right:5vw;bottom:2vh}.roomActions{max-width:90vw}.room.awakened #roomHint{left:5vw;right:5vw;transform:none;max-width:none;text-align:left}}
