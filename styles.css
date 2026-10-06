@@ -159,3 +159,10 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
 .room.awakened #roomMindLabel{color:var(--gold);letter-spacing:.15em}
 .room.awakened #roomConfidence:empty{display:none}
 .room.awakened #roomTalk{opacity:.72}.room.awakened #roomTalk:focus-within{opacity:1}
+
+/* Room perception tuning console: enabled only with ?debug */
+#roomDebug{position:fixed;z-index:90;right:14px;top:76px;width:min(390px,calc(100vw - 28px));max-height:calc(100vh - 96px);overflow:auto;background:rgba(5,7,9,.94);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px;color:#f5f5f2;font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;display:none;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+#roomDebug.on{display:block}#roomDebug .debugHead{display:flex;align-items:center;gap:10px;margin-bottom:10px}#roomDebug .debugHead b{letter-spacing:.14em}#roomDebug .debugHead span{margin-left:auto;opacity:.65}#debugClose{border:0;background:transparent;color:inherit;font-size:20px;cursor:pointer}
+#roomDebug .debugGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:9px}.debugGrid span{padding:7px;background:rgba(255,255,255,.055);border-radius:7px;opacity:.8}.debugGrid b{float:right;color:#fff}
+#debugLast{padding:9px;border:1px solid rgba(255,255,255,.12);border-radius:8px;margin-bottom:8px;min-height:34px}#debugLog{list-style:none;padding:0;margin:0;max-height:250px;overflow:auto}#debugLog li{padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.07);word-break:break-word}#debugLog time{opacity:.5;margin-right:7px}.debugActions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.debugActions button{background:rgba(255,255,255,.08);color:inherit;border:1px solid rgba(255,255,255,.13);border-radius:7px;padding:8px;font:inherit;cursor:pointer}#roomDebug>small{display:block;opacity:.5;margin-top:9px}
+@media(max-width:620px){#roomDebug{top:auto;bottom:10px;right:10px;width:calc(100vw - 20px);max-height:48vh}}
