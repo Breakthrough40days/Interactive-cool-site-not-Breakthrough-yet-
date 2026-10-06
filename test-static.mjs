@@ -83,10 +83,10 @@ if(!app.includes("encounter('observe'")||!app.includes("encounter('claim'")||!ap
 if(!html.includes('OBSERVING'))fail('observation-first Room UI language missing');
 if(!css.includes('[data-encounter="claim"]')||!css.includes('[data-encounter="revise"]'))fail('meeting visual progression missing');
 
-const composer=readFileSync('room/event-composer.js','utf8');
+const composer=fs.readFileSync('room/event-composer.js','utf8');
 if(!composer.includes('class EventComposer')||!composer.includes("this.frames")||!composer.includes("hands-together"))fail('temporal multimodal event composer missing');
 if(!html.includes('/room/event-composer.js'))fail('event composer runtime missing');
-const perception=readFileSync('room/perception.js','utf8');
+const perception=fs.readFileSync('room/perception.js','utf8');
 if(!perception.includes('@mediapipe/tasks-vision@1.0.1')||!perception.includes('outputFaceBlendshapes:true'))fail('model-native face blendshape perception missing');
 if(!perception.includes('GestureRecognizer')||!perception.includes('heartScore'))fail('model-native and custom gesture perception missing');
 if(html.includes('@mediapipe/face_mesh'))fail('obsolete FaceMesh runtime should not ship');
@@ -101,3 +101,9 @@ if(!perception.includes("You widened your eyes.")||!perception.includes("You puc
 if(!perception.includes("You moved closer.")||!perception.includes("You moved farther away."))fail('body distance perception missing');
 if(!perception.includes("You turned your head."))fail('head orientation perception missing');
 if(!app.includes("speech-stop")||!app.includes("pitchHz>70&&pitchHz<420"))fail('robust speech event perception missing');
+
+if(!composer.includes("You clapped.")||!composer.includes("You waved.")||!composer.includes("You covered your face."))fail('temporal gesture grammar missing');
+if(!composer.includes('lastEmit')||!composer.includes('transitions'))fail('event deduplication or transition history missing');
+if(!perception.includes('armCount')||perception.includes('poseState.arms'))fail('pose arm transition state regression');
+if(!perception.includes('slice(5,-5)'))fail('robust trimmed facial calibration missing');
+console.log('Perception invariants OK');
