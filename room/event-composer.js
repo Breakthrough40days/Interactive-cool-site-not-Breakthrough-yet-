@@ -2,7 +2,8 @@
 (function(){
  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
  class EventComposer{
-  constructor({emit,windowMs=8000}={}){this.emit=emit||(()=>{});this.windowMs=windowMs;this.frames=[];this.active=new Map();this.cool=new Map();this.baseline=new Map();this.stats=new Map();}
+  constructor({emit,windowMs=8000}={}){this.emit=emit||(()=>{});this.windowMs=windowMs;this.frames=[];this.active=new Map();this.cool=new Map();this.baseline=new Map();this.stats=new Map();this.filters=new Map();this.lastT=new Map();}
+  smooth(key,v,t,minCutoff=1,beta=.035,dCutoff=1){let prev=this.filters.get(key);if(!prev){this.filters.set(key,{x:v,dx:0});this.lastT.set(key,t);return v}let dt=Math.max(.001,(t-(this.lastT.get(key)||t))/1000),dx=(v-prev.x)/dt,aD=1/(1+1/(2*Math.PI*dCutoff*dt)),edx=aD*dx+(1-aD)*prev.dx,cut=minCutoff+beta*Math.abs(edx),a=1/(1+1/(2*Math.PI*cut*dt)),x=a*v+(1-a)*prev.x;this.filters.set(key,{x,dx:edx});this.lastT.set(key,t);return x;}
   push(type,data={},t=performance.now()){
    this.frames.push({type,data,t});while(this.frames.length&&t-this.frames[0].t>this.windowMs)this.frames.shift();
    if(type==='hands')this.hands(data,t);if(type==='pose')this.pose(data,t);if(type==='face')this.face(data,t);if(type==='audio')this.audio(data,t);
@@ -15,7 +16,7 @@
   hands(d,t){
    const h=d.landmarks||[];if(!h.length)return;
    const center=x=>({x:(x[0].x+x[5].x+x[9].x+x[13].x+x[17].x)/5,y:(x[0].y+x[5].y+x[9].y+x[13].y+x[17].y)/5});
-   let cs=h.map(center);if(h.length===2){let gap=Math.hypot(cs[0].x-cs[1].x,cs[0].y-cs[1].y);if(this.gate('hands-together',gap<.105,{rise:4,cooldown:5000}))this.say('hands-together','You brought your hands together.',.86,{gap});}
+   let cs=h.map((x,i)=>{let q=center(x);return {x:this.smooth('hx'+i,q.x,t),y:this.smooth('hy'+i,q.y,t)}});if(h.length===2){let gap=Math.hypot(cs[0].x-cs[1].x,cs[0].y-cs[1].y);let g=this.stats.get('handGap')||{lo:.105,seen:0};g.seen++;if(gap<.18)g.lo=g.lo*.995+gap*.005;this.stats.set('handGap',g);let enter=Math.max(.07,Math.min(.13,g.lo*1.35));if(this.gate('hands-together',gap<enter,{rise:4,cooldown:5000}))this.say('hands-together','You brought your hands together.',.86,{gap});}
    let recent=this.frames.filter(x=>x.type==='hands'&&t-x.t<650);if(recent.length>3){let old=recent[0].data.landmarks||[];for(let i=0;i<Math.min(h.length,old.length);i++){let a=center(old[i]),b=cs[i],v=Math.hypot(b.x-a.x,b.y-a.y);if(this.gate('fast-hand-'+i,v>.16,{rise:2,cooldown:4500}))this.say('fast-hand','You moved your hand quickly.',.8,{speed:v});}}
   }
   pose(d,t){
