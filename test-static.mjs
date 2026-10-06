@@ -107,3 +107,6 @@ if(!composer.includes('lastEmit')||!composer.includes('transitions'))fail('event
 if(!perception.includes('armCount')||perception.includes('poseState.arms'))fail('pose arm transition state regression');
 if(!perception.includes('slice(5,-5)'))fail('robust trimmed facial calibration missing');
 console.log('Perception invariants OK');
+
+if(!html.includes('id="roomDebug"')||!html.includes('id="debugDownload"'))fail('Room diagnostic console missing');
+if(!app.includes('impossible-room-trace-')||!app.includes("roomDebug.add('observation'")||!app.includes('roomDebug.tickVision()'))fail('perception diagnostic trace wiring missing');
