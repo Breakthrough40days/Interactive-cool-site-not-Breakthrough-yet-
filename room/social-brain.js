@@ -4,7 +4,7 @@
  class RoomSocialBrain{
   constructor({memory={},emit=()=>{},persist=()=>{}}={}){this.emit=emit;this.persist=persist;this.state={beliefs:{},pending:null,history:[],...memory};}
   out(type,text,detail={}){let e={type,text,detail,at:now()};this.state.history.push(e);this.state.history=this.state.history.slice(-80);this.emit(e);return e}
-  ingest(e){if(!e)return;this.repair(e);this.uncertainty(e);this.attend(e);this.inferIntent(e);this.scorePrediction(e);this.predict(e);this.curiosity(e);this.baseline(e)}
+  ingest(e){if(!e)return;this.repair(e);this.uncertainty(e);this.attend(e);this.inferIntent(e);this.scorePrediction(e);this.predict(e);this.curiosity(e);this.baseline(e);this.fuse(e)}
   repair(e){let p=this.state.pending;if(!p)return;if(e.detail?.confirmed){p.accepts=(p.accepts||0)+1;return}if(e.detail?.key===p.key&&e.detail?.invoked)return;let age=now()-p.at;if(age>9000&&p.accepts===0){p.rejects=(p.rejects||0)+1;this.out('repair','I may have misunderstood what that movement meant.',{key:p.key,rejects:p.rejects});this.state.pending=null;this.persist(this.state)}}
   uncertainty(e){let c=e.confidence??1;if(c>=.7)return;if(now()-(this.state.lastClarify||0)<7000)return;this.state.lastClarify=now();let ask=e.kind==='face'?'Hold that expression for a second.':e.kind==='composed'?'Do that once more. I am not sure I understood it.':'Do that again. I want another look.';this.out('clarify',ask,{confidence:c,source:e.kind})}
 
@@ -18,6 +18,8 @@
   curiosity(e){if(now()-(this.state.lastExperiment||0)<12000)return;let b=this.state.beliefs,kind=e.detail?.novel?'repeat':e.kind==='face'?'hold':'change';b[kind]=(b[kind]||0)+1;if(b[kind]<2)return;this.state.lastExperiment=now();let experiment=kind==='repeat'?'Do it once more, but change one part of the movement.':kind==='hold'?'Keep that still. I want to see what changes when you stop moving.':'Try the opposite of what you just did.';this.out('experiment',experiment,{kind,reason:'reduce uncertainty'})}
 
   baseline(e){let k=e.kind||'unknown',b=this.state.baselines||(this.state.baselines={}),x=b[k]||(b[k]={n:0,confidence:0,interval:0,last:0});let t=now(),dt=x.last?t-x.last:0;x.n++;x.confidence+=((e.confidence??.5)-x.confidence)/Math.min(x.n,30);if(dt>0)x.interval+=((dt-x.interval)/Math.min(x.n,30));x.last=t;if(x.n===12)this.out('baseline','I have enough of your normal rhythm now to notice when you break it.',{kind:k,confidence:x.confidence,interval:x.interval});}
+
+  fuse(e){let t=now(),q=this.state.signals||(this.state.signals=[]);q.push({kind:e.kind,text:e.text,at:t,detail:e.detail});this.state.signals=q.filter(x=>t-x.at<1400);let kinds=[...new Set(this.state.signals.map(x=>x.kind))];if(kinds.length<2||t-(this.state.lastFusion||0)<5000)return;this.state.lastFusion=t;this.out('fusion','Two things changed together. I am treating them as one moment.',{kinds,signals:this.state.signals.map(x=>x.text).slice(-4)})}
 
   propose(key,effect){this.state.pending={key,effect,at:now(),accepts:0,rejects:0};this.persist(this.state)}
  }
