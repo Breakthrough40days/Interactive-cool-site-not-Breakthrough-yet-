@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-const app=fs.readFileSync('app.js','utf8'),html=fs.readFileSync('index.html','utf8'),gpu=fs.readFileSync('gpu-matter.js','utf8');
+const app=fs.readFileSync('app.js','utf8'),html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('styles.css','utf8'),gpu=fs.readFileSync('gpu-matter.js','utf8');
 const fail=m=>{throw new Error(m)};
 if(!app.startsWith("const $=s=>document.querySelector(s),all=s=>"))fail('selector helpers broken');
 if(app.includes("$('.view').forEach"))fail('route incorrectly uses single-element selector for view collection');
@@ -120,3 +120,8 @@ if(!perception.includes('knownMotifs=[]')||!perception.includes('knownMotifs})')
 
 if(!composer.includes('testingMeaning')||!composer.includes('I think we agree what it means.')||!composer.includes('confirmed:!!x.confirmed'))fail('gesture meaning negotiation missing');
 if(!app.includes('private_language_meaning_test')||!app.includes('private_language_meaning_confirmed'))fail('negotiated gesture meaning persistence missing');
+
+const social=fs.readFileSync('room/social-brain.js','utf8');
+for(const invariant of ['repair(e)','uncertainty(e)','attend(e)','inferIntent(e)','predict(e)','curiosity(e)','baseline(e)','fuse(e)','relationship(e)','climax(e)'])if(!social.includes(invariant))fail('social intelligence layer missing: '+invariant);
+if(!html.includes('/room/social-brain.js')||!app.includes('socialBrain?.ingest(x)'))fail('ten-layer social brain runtime is not wired');
+if(!composer.includes("pulse('clap'")||!composer.includes("pulse('wave-'"))fail('repeatable temporal gesture pulse missing');
