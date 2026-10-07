@@ -113,3 +113,7 @@ if(!app.includes('impossible-room-trace-')||!app.includes("roomDebug.add('observ
 
 if(!composer.includes('discover(type,d,t)')||!composer.includes('I learned that movement from you.'))fail('personal movement discovery missing');
 if(!app.includes('privateLanguage')||!app.includes('private_language_learned'))fail('persistent private movement language missing');
+
+if(!composer.includes('knownMotifs=[]')||!composer.includes('I remember that movement.')||!composer.includes('I know what that means here.'))fail('cross-visit gesture recognition missing');
+if(!app.includes('private_language_invoked')||!app.includes('Your gesture changed the gravity.')||!app.includes('Your gesture froze the room.'))fail('learned gesture physical consequences missing');
+if(!perception.includes('knownMotifs=[]')||!perception.includes('knownMotifs})'))fail('remembered motifs are not seeded into perception');
