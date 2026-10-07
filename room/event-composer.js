@@ -2,11 +2,11 @@
 (function(){
  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
  class EventComposer{
-  constructor({emit,windowMs=8000}={}){this.emit=emit||(()=>{});this.windowMs=windowMs;this.frames=[];this.active=new Map();this.cool=new Map();this.baseline=new Map();this.stats=new Map();this.filters=new Map();this.lastT=new Map();this.transitions=new Map();this.lastEmit=new Map();}
+  constructor({emit,windowMs=8000}={}){this.emit=emit||(()=>{});this.windowMs=windowMs;this.frames=[];this.active=new Map();this.cool=new Map();this.baseline=new Map();this.stats=new Map();this.filters=new Map();this.lastT=new Map();this.transitions=new Map();this.lastEmit=new Map();this.motion=[];this.motifs=[];this.novelty={last:null,count:0};}
   smooth(key,v,t,minCutoff=1,beta=.035,dCutoff=1){let prev=this.filters.get(key);if(!prev){this.filters.set(key,{x:v,dx:0});this.lastT.set(key,t);return v}let dt=Math.max(.001,(t-(this.lastT.get(key)||t))/1000),dx=(v-prev.x)/dt,aD=1/(1+1/(2*Math.PI*dCutoff*dt)),edx=aD*dx+(1-aD)*prev.dx,cut=minCutoff+beta*Math.abs(edx),a=1/(1+1/(2*Math.PI*cut*dt)),x=a*v+(1-a)*prev.x;this.filters.set(key,{x,dx:edx});this.lastT.set(key,t);return x;}
   push(type,data={},t=performance.now()){
    this.frames.push({type,data,t});while(this.frames.length&&t-this.frames[0].t>this.windowMs)this.frames.shift();
-   if(type==='hands')this.hands(data,t);if(type==='pose')this.pose(data,t);if(type==='face')this.face(data,t);if(type==='audio')this.audio(data,t);
+   if(type==='hands')this.hands(data,t);if(type==='pose')this.pose(data,t);if(type==='face')this.face(data,t);if(type==='audio')this.audio(data,t);this.discover(type,data,t);
   }
   gate(key,on,{rise=3,fall=2,cooldown=3500}={}){
    let s=this.active.get(key)||{n:0,on:false};s.n=on?s.n+1:Math.max(0,s.n-fall);let fire=!s.on&&s.n>=rise;if(fire)s.on=true;if(!on&&s.n===0)s.on=false;this.active.set(key,s);
@@ -15,6 +15,8 @@
   say(key,text,confidence,detail={}){confidence=clamp(confidence);if(confidence<.7)return;let now=performance.now(),sig=text+'|'+JSON.stringify(detail);if(this.lastEmit.get(key)?.sig===sig&&now-(this.lastEmit.get(key)?.at||0)<2200)return;this.lastEmit.set(key,{sig,at:now});this.emit({kind:'composed',key,text,confidence,detail,at:now});}
   phase(key,value,t,ttl=1400){let x=this.transitions.get(key)||[];x.push({value,t});x=x.filter(v=>t-v.t<ttl);this.transitions.set(key,x);return x;}
   velocity(points,a,b,dt){if(!points?.[a]||!points?.[b]||dt<=0)return 0;return Math.hypot(points[b].x-points[a].x,points[b].y-points[a].y)/dt;}
+  signature(h){if(!h?.length)return null;const c=x=>({x:(x[0].x+x[5].x+x[9].x+x[13].x+x[17].x)/5,y:(x[0].y+x[5].y+x[9].y+x[13].y+x[17].y)/5});let q=h.map(c),cx=q.reduce((a,x)=>a+x.x,0)/q.length,cy=q.reduce((a,x)=>a+x.y,0)/q.length;return {n:q.length,cx,cy,spread:q.length>1?Math.hypot(q[0].x-q[1].x,q[0].y-q[1].y):0};}
+  discover(type,d,t){if(type!=='hands')return;let sig=this.signature(d.landmarks);if(!sig)return;this.motion.push({...sig,t});this.motion=this.motion.filter(x=>t-x.t<5000);if(this.motion.length<12)return;let recent=this.motion.filter(x=>t-x.t<850),first=recent[0],last=recent.at(-1);if(!first||recent.length<6)return;let travel=Math.hypot(last.cx-first.cx,last.cy-first.cy),spreadDelta=Math.abs(last.spread-first.spread);if(travel<.045&&spreadDelta<.035)return;let key=[sig.n,Math.round(travel/.06),Math.round(spreadDelta/.05),Math.sign(last.cx-first.cx),Math.sign(last.cy-first.cy)].join(':');let m=this.motifs.find(x=>x.key===key&&t-x.last<18000);if(!m){m={key,count:0,last:0,example:{travel,spreadDelta,hands:sig.n}};this.motifs.push(m);if(this.motifs.length>18)this.motifs.shift()}if(t-m.last<1200)return;m.count++;m.last=t;if(m.count===2)this.say('novel-'+key,'You did that movement again.',.74,{novel:true,key,repetitions:m.count});if(m.count===3)this.say('novel-'+key,'That movement is becoming a pattern.',.82,{novel:true,key,repetitions:m.count});if(m.count===4)this.say('novel-'+key,'I learned that movement from you.',.9,{novel:true,key,repetitions:m.count,learned:true});}
   hands(d,t){
    const h=d.landmarks||[];if(!h.length)return;
    const center=x=>({x:(x[0].x+x[5].x+x[9].x+x[13].x+x[17].x)/5,y:(x[0].y+x[5].y+x[9].y+x[13].y+x[17].y)/5});
@@ -34,7 +36,7 @@
    if(this.gate('speaking',!!d.speaking,{rise:3,cooldown:2500}))this.say('speaking','I hear you speaking.',.92);
    let recent=this.frames.filter(x=>x.type==='audio'&&t-x.t<1200),old=recent[0]?.data;if(old&&d.energy&&old.energy){let ratio=d.energy/Math.max(.001,old.energy);if(this.gate('louder',ratio>1.8&&d.speaking,{rise:2,cooldown:5000}))this.say('louder','Your voice got louder.',.82,{ratio});}
   }
-  summary(){return {buffered:this.frames.length,active:[...this.active.entries()].filter(([,v])=>v.on).map(([k])=>k),baselines:Object.fromEntries(this.baseline),filters:this.filters.size,transitions:this.transitions.size}}
+  summary(){return {buffered:this.frames.length,active:[...this.active.entries()].filter(([,v])=>v.on).map(([k])=>k),baselines:Object.fromEntries(this.baseline),filters:this.filters.size,transitions:this.transitions.size,motifs:this.motifs.filter(x=>x.count>1).map(x=>({key:x.key,count:x.count,example:x.example}))}}
  }
  window.RoomEventComposer={EventComposer};
 })();
