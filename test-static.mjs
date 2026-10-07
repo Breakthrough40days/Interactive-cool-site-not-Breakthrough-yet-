@@ -117,3 +117,6 @@ if(!app.includes('privateLanguage')||!app.includes('private_language_learned'))f
 if(!composer.includes('knownMotifs=[]')||!composer.includes('I remember that movement.')||!composer.includes('I know what that means here.'))fail('cross-visit gesture recognition missing');
 if(!app.includes('private_language_invoked')||!app.includes('Your gesture changed the gravity.')||!app.includes('Your gesture froze the room.'))fail('learned gesture physical consequences missing');
 if(!perception.includes('knownMotifs=[]')||!perception.includes('knownMotifs})'))fail('remembered motifs are not seeded into perception');
+
+if(!composer.includes('testingMeaning')||!composer.includes('I think we agree what it means.')||!composer.includes('confirmed:!!x.confirmed'))fail('gesture meaning negotiation missing');
+if(!app.includes('private_language_meaning_test')||!app.includes('private_language_meaning_confirmed'))fail('negotiated gesture meaning persistence missing');
