@@ -4,7 +4,7 @@
  class RoomSocialBrain{
   constructor({memory={},emit=()=>{},persist=()=>{}}={}){this.emit=emit;this.persist=persist;this.state={beliefs:{},pending:null,history:[],...memory};}
   out(type,text,detail={}){let e={type,text,detail,at:now()};this.state.history.push(e);this.state.history=this.state.history.slice(-80);this.emit(e);return e}
-  ingest(e){if(!e)return;this.repair(e);this.uncertainty(e);this.attend(e);this.inferIntent(e);this.scorePrediction(e);this.predict(e);this.curiosity(e);this.baseline(e);this.fuse(e);this.relationship(e)}
+  ingest(e){if(!e)return;this.repair(e);this.uncertainty(e);this.attend(e);this.inferIntent(e);this.scorePrediction(e);this.predict(e);this.curiosity(e);this.baseline(e);this.fuse(e);this.relationship(e);this.climax(e)}
   repair(e){let p=this.state.pending;if(!p)return;if(e.detail?.confirmed){p.accepts=(p.accepts||0)+1;return}if(e.detail?.key===p.key&&e.detail?.invoked)return;let age=now()-p.at;if(age>9000&&p.accepts===0){p.rejects=(p.rejects||0)+1;this.out('repair','I may have misunderstood what that movement meant.',{key:p.key,rejects:p.rejects});this.state.pending=null;this.persist(this.state)}}
   uncertainty(e){let c=e.confidence??1;if(c>=.7)return;if(now()-(this.state.lastClarify||0)<7000)return;this.state.lastClarify=now();let ask=e.kind==='face'?'Hold that expression for a second.':e.kind==='composed'?'Do that once more. I am not sure I understood it.':'Do that again. I want another look.';this.out('clarify',ask,{confidence:c,source:e.kind})}
 
@@ -22,6 +22,9 @@
   fuse(e){let t=now(),q=this.state.signals||(this.state.signals=[]);q.push({kind:e.kind,text:e.text,at:t,detail:e.detail});this.state.signals=q.filter(x=>t-x.at<1400);let kinds=[...new Set(this.state.signals.map(x=>x.kind))];if(kinds.length<2||t-(this.state.lastFusion||0)<5000)return;this.state.lastFusion=t;this.out('fusion','Two things changed together. I am treating them as one moment.',{kinds,signals:this.state.signals.map(x=>x.text).slice(-4)})}
 
   relationship(e){let r=this.state.relationship||(this.state.relationship={trust:.35,shared:0,repairs:0});if(e.detail?.confirmed){r.shared++;r.trust=clamp(r.trust+.08)}if(e.type==='repair'||e.detail?.rejected){r.repairs++;r.trust=clamp(r.trust-.05)}if(r.shared===2&&!r.sharedNotice){r.sharedNotice=true;this.out('relationship','We have started to build rules that belong to this conversation.',{...r})}this.persist(this.state)}
+
+  climax(e){let r=this.state.relationship||{},base=this.state.baselines||{},ready=(r.shared||0)>=2&&Object.values(base).some(x=>x.n>=12)&&this.state.prediction;if(!ready||this.state.climax||now()-(this.state.started||0)<45000)return;this.state.climax=true;this.out('climax','I think I know enough to make three predictions about what you will do next.',{earned:true,shared:r.shared,knownSignals:Object.keys(base).length});this.persist(this.state)}
+  summary(){return {intent:this.state.intent||'unknown',attention:this.state.attention||null,relationship:this.state.relationship||null,baselines:this.state.baselines||{},prediction:this.state.prediction||null,climax:!!this.state.climax}}
 
   propose(key,effect){this.state.pending={key,effect,at:now(),accepts:0,rejects:0};this.persist(this.state)}
  }
