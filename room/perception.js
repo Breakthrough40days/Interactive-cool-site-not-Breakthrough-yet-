@@ -59,12 +59,14 @@ async function createPerception({onObservation,onHands,onFace,onStatus,knownMoti
    const fr=face.detectForVideo(video,now),cats=fr.faceBlendshapes?.[0]?.categories||[],map=Object.fromEntries(cats.map(x=>[x.categoryName,x.score]));
    if(cats.length){
     const [name,score]=topFace(map);const facePacket={name,score,blendshapes:map,landmarks:fr.faceLandmarks?.[0],matrix:fr.facialTransformationMatrixes?.[0]};onFace?.(facePacket);composer?.push('face',{features:map,landmarks:facePacket.landmarks,matrix:facePacket.matrix},now);
-    if(!faceBase){faceSamples.push(map);if(faceSamples.length>=36){faceBase={};for(const k of Object.keys(map)){const vals=faceSamples.map(x=>x[k]||0).sort((a,b)=>a-b),trim=vals.slice(5,-5);faceBase[k]=trim.reduce((s,x)=>s+x,0)/Math.max(1,trim.length)}}return}
+    if(!faceBase){faceSamples.push(map);if(faceSamples.length>=36){faceBase={};for(const k of Object.keys(map)){const vals=faceSamples.map(x=>x[k]||0).sort((a,b)=>a-b),trim=vals.slice(5,-5);faceBase[k]=trim.reduce((s,x)=>s+x,0)/Math.max(1,trim.length)}}}
+    if(faceBase){
     const delta=n=>(map[n]||0)-(faceBase[n]||0),davg=(...n)=>n.reduce((s,k)=>s+delta(k),0)/n.length;
     const events=[['smile',davg('mouthSmileLeft','mouthSmileRight')>.20,'You smiled.',.82],['brows',Math.max(delta('browInnerUp'),davg('browOuterUpLeft','browOuterUpRight'))>.20,'You raised your eyebrows.',.8],['wide',davg('eyeWideLeft','eyeWideRight')>.23,'You widened your eyes.',.78],['squint',davg('eyeSquintLeft','eyeSquintRight')>.25,'You squinted.',.78],['jaw',delta('jawOpen')>.26,'You opened your mouth.',.82],['pucker',delta('mouthPucker')>.28,'You puckered your lips.',.8],['frown',davg('mouthFrownLeft','mouthFrownRight')>.24,'You frowned.',.76],['puff',delta('cheekPuff')>.28,'You puffed your cheeks.',.78]];
     for(const [key,on,text,conf] of events)if(held('face-'+key,on,4)&&now-lastFaceAt>2200){lastFaceAt=now;emit('face',text,conf,{blendshape:key})}
     if(held('face-blink',avg(map,'eyeBlinkLeft','eyeBlinkRight')>.72,2)&&now-lastFaceAt>1800){lastFaceAt=now;emit('face','You blinked.',.9,{blendshape:'blink'})}
     let lm=fr.faceLandmarks?.[0];if(lm){let left=lm[234],right=lm[454],nose=lm[1],eyesY=(lm[33].y+lm[263].y)/2,chin=lm[152],fw=Math.max(.01,Math.abs(right.x-left.x)),fh=Math.max(.01,Math.abs(chin.y-eyesY)),yaw=((nose.x-(left.x+right.x)/2)/fw),pitch=(nose.y-eyesY)/fh;if(held('head-left',yaw<-.10,4))emit('face','You turned your head.',.76,{blendshape:'head-turn'});if(held('head-right',yaw>.10,4))emit('face','You turned your head.',.76,{blendshape:'head-turn'});if(held('head-down',pitch>.44,4))emit('face','You tilted your head down.',.72,{blendshape:'head-down'})}
+    }
    }
    if(pose&&now-lastPoseRun>125){lastPoseRun=now;let pr=pose.detectForVideo(video,now),p=pr.landmarks?.[0];if(p){composer?.push('pose',{landmarks:p},now);let shoulders=(p[11].y+p[12].y)/2,wrists=[p[15],p[16]],arms=wrists.filter(w=>w.visibility>.5&&w.y<shoulders-.06).length;if(arms===2&&poseState.armCount!==2){emit('pose','You raised both arms.',.8,{pose:'both-arms-up'})}else if(arms===1&&poseState.armCount===0){emit('pose','You raised an arm.',.75,{pose:'one-arm-up'})}poseState.armCount=arms;let midShoulder=(p[11].x+p[12].x)/2,midHip=(p[23].x+p[24].x)/2,lean=midShoulder-midHip;let dir=lean>.055?'right':lean<-.055?'left':'';if(dir&&dir!==poseState.lean){emit('pose',`You leaned ${dir}.`,.72,{pose:'lean-'+dir})}poseState.lean=dir;
 let sw=Math.abs(p[11].x-p[12].x),cx=(p[11].x+p[12].x+p[23].x+p[24].x)/4,cy=(p[11].y+p[12].y+p[23].y+p[24].y)/4;
@@ -76,7 +78,7 @@ poseState.shoulder=poseState.shoulder?poseState.shoulder*.92+sw*.08:sw;poseState
    const best=(gr.gestures||[]).map(x=>x?.[0]).filter(x=>x&&x.categoryName!=='None').sort((a,b)=>b.score-a.score)[0];
    if(best&&best.score>.70){gestureFrames=best.categoryName===lastGesture?gestureFrames+1:1;lastGesture=best.categoryName}else{gestureFrames=Math.max(0,gestureFrames-1);if(!gestureFrames)lastGesture=''}
    if(best&&gestureFrames===3&&now-lastGestureAt>3800){lastGestureAt=now;emit('gesture',gestureText[best.categoryName]||`I recognized ${best.categoryName.replaceAll('_',' ').toLowerCase()}.`,best.score,{gesture:best.categoryName})}
-  }catch{}
+  }catch(err){onStatus?.('PERCEPTION FRAME ERROR · '+String(err?.message||err).slice(0,120))}
  };
  const summary=()=>composer?.summary?.()||{};const close=()=>{try{if(face)face.close();}catch(err){}try{if(gesture)gesture.close();}catch(err){}try{if(pose)pose.close();}catch(err){}};
  return {ready:true,process,close,summary};
