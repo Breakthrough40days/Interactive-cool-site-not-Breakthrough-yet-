@@ -110,3 +110,6 @@ console.log('Perception invariants OK');
 
 if(!html.includes('id="roomDebug"')||!html.includes('id="debugDownload"'))fail('Room diagnostic console missing');
 if(!app.includes('impossible-room-trace-')||!app.includes("roomDebug.add('observation'")||!app.includes('roomDebug.tickVision()'))fail('perception diagnostic trace wiring missing');
+
+if(!composer.includes('discover(type,d,t)')||!composer.includes('I learned that movement from you.'))fail('personal movement discovery missing');
+if(!app.includes('privateLanguage')||!app.includes('private_language_learned'))fail('persistent private movement language missing');
