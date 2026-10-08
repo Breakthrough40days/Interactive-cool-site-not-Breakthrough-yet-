@@ -225,3 +225,11 @@ header nav a[href="#guide"]{display:inline-flex!important}
 #roomSay{min-height:44px}
 #room.awakened #roomMind{width:min(420px,38vw);max-height:56vh}
 @media(max-width:900px){#room.awakened #roomMind{width:calc(100vw - 24px);max-height:48vh}}
+
+/* Voice controls and clear input */
+#roomMic{border:1px solid rgba(207,226,236,.35);background:rgba(20,34,42,.88);color:#e6f5fa;padding:0 12px;border-radius:7px;font:600 12px sans-serif;white-space:nowrap;cursor:pointer}
+#roomMic:hover,#roomMic:focus-visible{border-color:#d9eef8;background:#233945}
+#roomMic[hidden]{display:none}
+#roomVoice{grid-column:span 2}
+#roomSay:focus-visible,#roomSend:focus-visible{outline:2px solid #d9eef8;outline-offset:2px}
+@media(max-width:450px){#roomTalk{flex-wrap:wrap}#roomSay{flex-basis:100%}#roomMic,#roomSend{min-height:42px;flex:1}}
