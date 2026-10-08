@@ -61,10 +61,31 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
   if(s.frames===frames&&performance.now()-s.lastAt>2100){s.lastAt=performance.now();emit('movement',label,confidence,detail)}
   multimodal.last.set(key,s);
  };
+ const fingerNames=['thumb','index','middle','ring','little'];
+ const articulationHistory=[[],[]];
+ const analyzeFingers=(hand,slot,now)=>{
+  const width=Math.max(.015,distance(hand[5],hand[17]));
+  const extended=[distance(hand[4],hand[5])>width*.9];
+  for(const [tip,pip,base] of [[8,6,5],[12,10,9],[16,14,13],[20,18,17]])extended.push(distance(hand[tip],hand[base])>1.48*distance(hand[pip],hand[base]));
+  const count=extended.filter(Boolean).length;
+  const history=articulationHistory[slot];history.push({count,at:now});if(history.length>6)history.shift();
+  const votes=history.filter(x=>x.count===count).length;
+  if(votes>=4)stableSignal('count-'+slot+'-'+count,true,'I can see '+count+' extended fingers on your hand.',{count,hand:slot,fingers:extended.map((yes,i)=>yes?fingerNames[i]:null).filter(Boolean)},.76,2);
+  for(let finger=1;finger<5;finger++){
+   const separation=distance(hand[4],hand[finger*4+4])/width;
+   stableSignal('thumb-touch-'+slot+'-'+finger,separation<.33,'Your thumb and '+fingerNames[finger]+' finger are touching.',{gesture:'finger-pinch',finger:fingerNames[finger],hand:slot},.8,2);
+  }
+  for(let i=1;i<5;i++)for(let j=i+1;j<5;j++){
+   const separation=distance(hand[i*4+4],hand[j*4+4])/width;
+   stableSignal('tips-'+slot+'-'+i+'-'+j,separation<.2,'Your '+fingerNames[i]+' and '+fingerNames[j]+' fingertips are touching.',{gesture:'fingertip-contact',fingers:[fingerNames[i],fingerNames[j]],hand:slot},.73,3);
+  }
+  return {count,extended};
+ };
  const interpretHands=(landmarks,now)=>{
   const hands=landmarks||[];
   hands.forEach((h,i)=>{
    if(!h||h.length<21)return;
+   analyzeFingers(h,i,now);
    const palm=distance(h[5],h[17])||.1;
    const fingers=[[8,6,5],[12,10,9],[16,14,13],[20,18,17]].map(([tip,pip,mcp])=>distance(h[tip],h[mcp])>distance(h[pip],h[mcp])*1.5);
    const extended=fingers.filter(Boolean).length;
