@@ -166,3 +166,23 @@ body[data-world="voice"] header{border-color:rgba(155,105,255,.18)}body[data-wor
 #roomDebug .debugGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:9px}.debugGrid span{padding:7px;background:rgba(255,255,255,.055);border-radius:7px;opacity:.8}.debugGrid b{float:right;color:#fff}
 #debugLast{padding:9px;border:1px solid rgba(255,255,255,.12);border-radius:8px;margin-bottom:8px;min-height:34px}#debugLog{list-style:none;padding:0;margin:0;max-height:250px;overflow:auto}#debugLog li{padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.07);word-break:break-word}#debugLog time{opacity:.5;margin-right:7px}.debugActions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.debugActions button{background:rgba(255,255,255,.08);color:inherit;border:1px solid rgba(255,255,255,.13);border-radius:7px;padding:8px;font:inherit;cursor:pointer}#roomDebug>small{display:block;opacity:.5;margin-top:9px}
 @media(max-width:620px){#roomDebug{top:auto;bottom:10px;right:10px;width:calc(100vw - 20px);max-height:48vh}}
+
+
+/* Quiet Room: intelligence first. Preserve the underlying camera/perception pipelines. */
+body[data-world="room"] #ambient, #roomCanvas, #roomForeground, #roomArtifact {display:none!important}
+#room {background:radial-gradient(ellipse at 55% 42%,#192125 0%,#0b1115 42%,#050709 100%)!important}
+#roomVideo {opacity:.16!important;filter:grayscale(1) blur(8px) brightness(.7)!important;transform:scaleX(-1) scale(1.04)!important;pointer-events:none}
+#room.fallback #roomVideo {opacity:0!important}
+#room::after {content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(90deg,rgba(4,7,10,.68),rgba(4,7,10,.16) 65%,rgba(4,7,10,.45))}
+#room .roomHUD,#room #roomStage,#room #roomMind,#room #roomMemory,#room #roomHint,#room .roomControlsToggle,#room .roomActions {z-index:5}
+#room .roomHUD h1 {letter-spacing:-.045em}
+#room .roomHUD .eyebrow {color:#a5b4bc}
+#room.awakened #roomMind {background:rgba(6,10,13,.58);border-left:1px solid rgba(185,205,216,.28);backdrop-filter:blur(20px);padding:22px}
+#room.awakened #roomMindLabel {color:#b7cbd4}
+#room.awakened #roomThought {font-size:clamp(16px,1.3vw,21px);line-height:1.55}
+#room.awakened #roomMemory {opacity:.48}
+#room .roomActions button:first-child,#room #roomReply button:hover {color:#c4d7df;border-color:rgba(190,215,225,.4)}
+/* The previous particle labs remain in source for reversibility, but are no longer promoted. */
+header nav a:not([href="#room"]),#menu,.shareTop {display:none!important}
+header nav {display:flex!important}
+@media(max-width:760px){#room.awakened #roomMind{max-height:46vh;width:calc(100vw - 32px);left:16px;top:90px}#room.awakened #roomHint{bottom:68px}#room .roomHUD h1{font-size:clamp(54px,13vw,92px)}}
