@@ -183,7 +183,7 @@ body[data-world="room"] #ambient, #roomCanvas, #roomForeground, #roomArtifact {d
 #room.awakened #roomMemory {opacity:.48}
 #room .roomActions button:first-child,#room #roomReply button:hover {color:#c4d7df;border-color:rgba(190,215,225,.4)}
 /* The previous particle labs remain in source for reversibility, but are no longer promoted. */
-header nav a:not([href="#room"]),#menu,.shareTop {display:none!important}
+header nav a:not([href="#room"]),#menu {display:none!important}
 header nav {display:flex!important}
 @media(max-width:760px){#room.awakened #roomMind{max-height:46vh;width:calc(100vw - 32px);left:16px;top:90px}#room.awakened #roomHint{bottom:68px}#room .roomHUD h1{font-size:clamp(54px,13vw,92px)}}
 
