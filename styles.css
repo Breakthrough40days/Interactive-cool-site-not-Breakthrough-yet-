@@ -288,3 +288,6 @@ body:has(#room.active) header .logo,body:has(#room.active) header nav a{color:#1
 
 /* Exact viewport overlay: both source image and landmarks receive one mirror. */
 #room.active #roomTracking{position:fixed!important;left:var(--tracking-left,0px)!important;top:var(--tracking-top,0px)!important;width:var(--tracking-width,1px)!important;height:var(--tracking-height,1px)!important;transform:scaleX(-1)!important;transform-origin:center center!important;z-index:50!important;pointer-events:none!important}
+
+/* Mirror landmarks in drawing coordinates exactly once, never again in CSS. */
+#room.active #roomTracking{transform:none!important}
