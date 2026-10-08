@@ -11,7 +11,7 @@ try{
  await page.goto('http://127.0.0.1:4184/#room',{waitUntil:'domcontentloaded'});
  await page.waitForSelector('#roomVideo');
  await page.click('#roomStart');
- await page.waitForFunction(()=>document.querySelector('#roomTracking')?.parentElement===document.body,{timeout:45000}).catch(()=>{});
+ await page.waitForFunction(()=>document.querySelector('#roomTracking')?.parentElement===document.body,null,{timeout:45000});
  const geometry=await page.evaluate(()=>{
   const video=document.querySelector('#roomVideo'),canvas=document.querySelector('#roomTracking');
   const vr=video.getBoundingClientRect(),cr=canvas.getBoundingClientRect();
