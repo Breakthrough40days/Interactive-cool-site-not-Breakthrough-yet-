@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "check": "node --check app.js && node --check gpu-matter.js && node test-static.mjs",
+    "check": "node --check app.js && node --check gpu-matter.js && node --check room/perception.js && node --check room/event-composer.js && node --check room/social-brain.js && node test-static.mjs",
     "validate": "npm run check && npm run build",
     "smoke": "node smoke.mjs",
     "test:runtime": "node smoke.mjs"
