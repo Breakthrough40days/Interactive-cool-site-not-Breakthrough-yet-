@@ -294,3 +294,6 @@ body:has(#room.active) header .logo,body:has(#room.active) header nav a{color:#1
 
 /* Final camera alignment: both elements share the same horizontal reflection. */
 #room.active #roomVideo,#room.active #roomTracking{transform:scaleX(-1)!important;transform-origin:center center!important}
+
+/* Camera overlay: identical reflection, bounding box, and cover crop. */
+#room.active #roomTracking{position:fixed!important;left:var(--tracking-left,0px)!important;top:var(--tracking-top,0px)!important;width:var(--tracking-width,1px)!important;height:var(--tracking-height,1px)!important;transform:scaleX(-1)!important;transform-origin:center center!important;object-fit:fill!important;border-radius:22px!important;pointer-events:none!important}
