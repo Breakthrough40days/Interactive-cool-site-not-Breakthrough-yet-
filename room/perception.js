@@ -50,7 +50,7 @@ async function createPerception({onObservation,onHands,onFace,onStatus,knownMoti
   const proximity=Math.max(0,1-index/1.0)*.36+Math.max(0,1-thumb/1.05)*.36+Math.max(0,1-palms/3.2)*.12+symmetry*.16;
   return Math.max(0,Math.min(1,proximity+(indexBent>.45?.08:0)));
  };
- let heartFrames=0,lastHeartAt=0;
+ let heartFrames=0,lastHeartAt=0;let lastFingerLabel='',fingerFrames=0,lastFingerAt=0;
  let poseState={armCount:0,lean:'',shoulder:0,centerX:0,centerY:0,lastMove:0};
  const process=(video,now=performance.now())=>{
   if(!ready||!video||video.readyState<2||video.currentTime===lastVideoTime)return;
@@ -110,6 +110,25 @@ async function createPerception({onObservation,onHands,onFace,onStatus,knownMoti
     }
    }
    const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);composer?.push('hands',{landmarks:gr.landmarks,gestures:gr.gestures},now);
+   // Count extended fingers using joint geometry, with stability and conservative confidence.
+   const fingerCounts=(gr.landmarks||[]).map(h=>{
+    if(!h||h.length<21)return null;
+    const d=(i,j)=>Math.hypot(h[i].x-h[j].x,h[i].y-h[j].y);
+    const scale=Math.max(.01,d(5,17));
+    let count=0,ambiguous=0;
+    for(const [tip,pip,mcp] of [[8,6,5],[12,10,9],[16,14,13],[20,18,17]]){
+      const straight=d(tip,mcp)/Math.max(.001,d(pip,mcp));
+      if(straight>1.55)count++;else if(straight>1.35)ambiguous++;
+    }
+    const thumbRatio=d(4,17)/Math.max(.001,d(3,17));
+    if(thumbRatio>1.25&&d(4,5)>scale*.68)count++;
+    else if(thumbRatio>1.15)ambiguous++;
+    return ambiguous?null:count;
+   });
+   if(fingerCounts.length===1&&fingerCounts[0]!==null){
+    const label=String(fingerCounts[0]);fingerFrames=label===lastFingerLabel?fingerFrames+1:1;lastFingerLabel=label;
+    if(fingerFrames===7&&now-lastFingerAt>4500){lastFingerAt=now;emit('fingers',fingerCounts[0]===0?'I can see a closed fist.':`I can see ${fingerCounts[0]} finger${fingerCounts[0]===1?'':'s'}.`,.76,{count:fingerCounts[0]})}
+   }else{fingerFrames=0;lastFingerLabel=''}
    const hs=heartScore(gr.landmarks);heartFrames=hs>.60?heartFrames+1:Math.max(0,heartFrames-2);
    if(heartFrames===4&&now-lastHeartAt>7000){lastHeartAt=now;emit('gesture','You made a heart with your hands.',hs,{gesture:'Heart'})}
    const best=(gr.gestures||[]).map(x=>x?.[0]).filter(x=>x&&x.categoryName!=='None').sort((a,b)=>b.score-a.score)[0];
