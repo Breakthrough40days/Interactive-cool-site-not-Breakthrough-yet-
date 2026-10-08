@@ -280,3 +280,8 @@ body:has(#room.active) header .logo,body:has(#room.active) header nav a{color:#1
 #room.active #roomVideo{transform:scaleX(-1)!important}
 #room.active #roomTracking{left:28px!important;top:clamp(88px,9vh,112px)!important;width:calc((100% - 80px) * 1.55 / 2.55)!important;transform:scaleX(-1)!important;transform-origin:center!important}
 @media(max-width:900px){#room.active #roomTracking{left:14px!important;top:76px!important;width:calc(100% - 28px)!important}}
+
+/* Landmark alignment is driven by video.getBoundingClientRect in app.js. */
+#room.active #roomTracking{left:0;top:0;width:1px;height:1px;transform:scaleX(-1)!important;object-fit:contain!important}
+
+#room.active #roomTracking{left:var(--tracking-left,0px)!important;top:var(--tracking-top,0px)!important;width:var(--tracking-width,1px)!important;height:var(--tracking-height,1px)!important}
