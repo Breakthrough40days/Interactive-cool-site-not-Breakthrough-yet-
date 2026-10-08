@@ -1,8 +1,8 @@
 // Modern local perception layer: MediaPipe Tasks Vision 1.0.1.
 // Uses model-native face blendshapes and gesture classification instead of
 // hand-written landmark thresholds wherever a trained signal exists.
-const VISION='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm';
-const WASM='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm';
+const VISION='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm';
+const WASM='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm';
 const FACE='https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 const GESTURE='https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task';
 const POSE='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
