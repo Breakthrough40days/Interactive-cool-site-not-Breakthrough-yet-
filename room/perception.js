@@ -1,8 +1,8 @@
 // Modern local perception layer: MediaPipe Tasks Vision 1.0.1.
 // Uses model-native face blendshapes and gesture classification instead of
 // hand-written landmark thresholds wherever a trained signal exists.
-const VISION='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm';
-const WASM='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm';
+const VISION='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm';
+const WASM='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm';
 const FACE='https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 const GESTURE='https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task';
 const POSE='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
@@ -37,7 +37,7 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
   try{gesture=await mp.GestureRecognizer.createFromOptions(vision,{baseOptions:{modelAssetPath:GESTURE,delegate:'GPU'},...gopts})}
   catch{try{gesture=await mp.GestureRecognizer.createFromOptions(vision,{baseOptions:{modelAssetPath:GESTURE,delegate:'CPU'},...gopts})}catch(err){gesture=null;onStatus?.('HAND MODEL FAILED: '+err.message)}}
   try{pose=await mp.PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:POSE,delegate:'GPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.55})}catch{try{pose=await mp.PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:POSE,delegate:'CPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.55})}catch{pose=null}}ready=!!(face||gesture||pose);onStatus?.('TRACKING: '+[face?'face':'',gesture?'hands':'',pose?'body':''].filter(Boolean).join(', '));
- }catch(err){onStatus?.('MODEL PERCEPTION UNAVAILABLE');return {ready:false,process:()=>{},close:()=>{},error:err}}
+ }catch(err){onStatus?.('ADVANCED VISION LOAD FAILED: '+String(err?.message||err).slice(0,140));return {ready:false,process:()=>{},close:()=>{},error:err}}
 
  const heartScore=(hands)=>{
   if(!hands||hands.length<2)return 0;
@@ -235,6 +235,6 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
   }catch(err){onStatus?.('PERCEPTION FRAME ERROR · '+String(err?.message||err).slice(0,120))}
  };
  const summary=()=>composer?.summary?.()||{};const close=()=>{try{if(face)face.close();}catch(err){}try{if(gesture)gesture.close();}catch(err){}try{if(pose)pose.close();}catch(err){}};
- return {ready:true,process,close,summary};
+ return {ready,process,close,summary,capabilities:{face:!!face,hands:!!gesture,body:!!pose}};
 }
 window.RoomPerception={createPerception};
