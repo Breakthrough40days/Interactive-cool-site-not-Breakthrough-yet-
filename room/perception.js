@@ -79,6 +79,8 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
    const separation=distance(hand[i*4+4],hand[j*4+4])/width;
    stableSignal('tips-'+slot+'-'+i+'-'+j,separation<.2,'Your '+fingerNames[i]+' and '+fingerNames[j]+' fingertips are touching.',{gesture:'fingertip-contact',fingers:[fingerNames[i],fingerNames[j]],hand:slot},.73,3);
   }
+  const previous=history.length>1?history[history.length-2]:null;
+  if(previous&&previous.count!==count)stableSignal('count-change-'+slot,true,'You changed the number of extended fingers.',{gesture:'finger-count-change',before:previous.count,after:count,hand:slot},.74,2);
   return {count,extended};
  };
  const interpretHands=(landmarks,now)=>{
