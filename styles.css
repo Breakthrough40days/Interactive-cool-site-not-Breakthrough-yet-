@@ -291,3 +291,6 @@ body:has(#room.active) header .logo,body:has(#room.active) header nav a{color:#1
 
 /* Mirror landmarks in drawing coordinates exactly once, never again in CSS. */
 #room.active #roomTracking{transform:none!important}
+
+/* Final camera alignment: both elements share the same horizontal reflection. */
+#room.active #roomVideo,#room.active #roomTracking{transform:scaleX(-1)!important;transform-origin:center center!important}
