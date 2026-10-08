@@ -1,4 +1,4 @@
-// Modern local perception layer: MediaPipe Tasks Vision 1.0.1.
+// Local perception layer: pinned MediaPipe Tasks Vision 0.10.22.
 // Uses model-native face blendshapes and gesture classification instead of
 // hand-written landmark thresholds wherever a trained signal exists.
 const VISION='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm';
