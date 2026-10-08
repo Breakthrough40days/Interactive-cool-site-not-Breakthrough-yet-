@@ -213,3 +213,15 @@ header nav a[href="#guide"]{display:inline-flex!important}
 .guidePrivacy{font-size:14px;line-height:1.65;color:#b9cbd3;margin:24px 0 30px}
 .guideBack{display:inline-flex}
 @media(max-width:760px){#roomVideo{opacity:.95!important}#room.awakened #roomMind{left:12px;width:calc(100vw - 24px);padding:16px!important}#room.awakened #roomMind p{font-size:15px}#roomSend{padding:0 10px;font-size:10px}#room .roomHUD>p:not(.eyebrow){display:block!important}}
+
+/* Conversational-first experience */
+#roomReply{flex-wrap:wrap;align-items:center}
+#roomReply .replyQuestion{width:100%;font-size:13px;font-weight:600;color:#f1f7fa;margin-bottom:4px}
+#roomReply button{font-size:12px!important;border-radius:7px!important;min-height:38px}
+#roomActions [hidden]{display:none!important}
+#room .roomActions{grid-template-columns:1fr 1fr!important}
+#room .roomActions button{font-size:12px!important;min-height:44px}
+#roomTalk{align-items:stretch}
+#roomSay{min-height:44px}
+#room.awakened #roomMind{width:min(420px,38vw);max-height:56vh}
+@media(max-width:900px){#room.awakened #roomMind{width:calc(100vw - 24px);max-height:48vh}}
