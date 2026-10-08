@@ -233,3 +233,34 @@ header nav a[href="#guide"]{display:inline-flex!important}
 #roomVoice{grid-column:span 2}
 #roomSay:focus-visible,#roomSend:focus-visible{outline:2px solid #d9eef8;outline-offset:2px}
 @media(max-width:450px){#roomTalk{flex-wrap:wrap}#roomSay{flex-basis:100%}#roomMic,#roomSend{min-height:42px;flex:1}}
+
+/* ROOM 2.0: actual interface replacement, not a reskin of the lab HUD */
+body:has(#room.active){background:#f3f5f5!important;color:#14262b!important}
+body:has(#room.active) header{background:#fff!important;border-bottom:1px solid #e2e8ea!important;color:#172d33!important}
+body:has(#room.active) header .logo,body:has(#room.active) header nav a{color:#183038!important}
+#room.view.active{background:#f4f6f6!important;color:#172c33!important;display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr)!important;grid-template-rows:1fr!important;gap:24px!important;align-items:stretch!important;padding:clamp(88px,9vh,112px) 28px 84px!important;min-height:100dvh!important;height:auto!important;overflow:visible!important}
+#room.view.active::after{display:none!important}
+#room.active #roomVideo{position:relative!important;grid-column:1!important;grid-row:1!important;width:100%!important;height:min(70vh,700px)!important;min-height:420px!important;object-fit:cover!important;opacity:1!important;filter:brightness(1.22) contrast(1.02)!important;transform:scaleX(-1)!important;border-radius:22px!important;background:#dce5e8!important;box-shadow:0 14px 48px rgba(19,40,49,.12)!important;z-index:2!important}
+#room.active .roomHUD{position:absolute!important;left:48px!important;top:calc(clamp(88px,9vh,112px) + 24px)!important;max-width:min(40%,470px)!important;z-index:7!important;background:rgba(255,255,255,.94)!important;color:#172d34!important;padding:26px!important;border-radius:18px!important;box-shadow:0 8px 32px rgba(0,0,0,.12)!important}
+#room.active .roomHUD h1{font-size:clamp(36px,4vw,62px)!important;line-height:1.05!important;color:#122d34!important}
+#room.active .roomHUD p,#room.active .roomHUD small{color:#39515b!important}
+#room.active .roomHUD .eyebrow{color:#49717b!important}
+#room.active .roomHUD .go{background:#126b75!important;color:#fff!important;border-radius:10px!important}
+#room.active .roomGuideLink{color:#176774!important}
+#room.active .roomHUD.started{display:none!important}
+#room.active #roomMind{position:relative!important;grid-column:2!important;grid-row:1!important;inset:auto!important;width:100%!important;max-width:none!important;max-height:none!important;height:min(70vh,700px)!important;min-height:420px!important;display:flex!important;flex-direction:column!important;gap:14px!important;overflow:auto!important;background:#fff!important;color:#152b32!important;padding:26px!important;border:1px solid #e1e8eb!important;border-radius:22px!important;box-shadow:0 12px 44px rgba(20,42,51,.07)!important;z-index:5!important}
+#room.active #roomMindLabel{font-size:13px!important;font-weight:800!important;letter-spacing:.07em!important;color:#187080!important}
+#room.active #roomThought{font-size:clamp(19px,1.7vw,25px)!important;line-height:1.45!important;color:#172f36!important;flex:0 0 auto!important}
+#room.active #roomTranscript{display:flex!important;flex-direction:column!important;gap:8px!important;overflow:auto!important;flex:1!important;min-height:70px!important;color:#455b64!important;font-size:14px!important}
+#room.active #roomTranscript>div{background:#f1f5f6!important;padding:12px 14px!important;border-radius:12px!important;line-height:1.5!important}
+#room.active #roomTalk{display:flex!important;gap:8px!important;align-items:stretch!important;margin-top:auto!important}
+#room.active #roomSay{background:#f5f8f9!important;color:#172d34!important;border:1px solid #b8cbd0!important;border-radius:10px!important;font-size:14px!important;flex:1!important;min-width:0!important}
+#room.active #roomSend,#room.active #roomMic{background:#146e79!important;color:white!important;border:0!important;border-radius:10px!important;font-size:12px!important;padding:10px 13px!important}
+#room.active #roomReply{background:#eff7f7!important;border-radius:12px!important;padding:12px!important;color:#1c414a!important}
+#room.active #roomReply .replyQuestion{color:#1c414a!important}
+#room.active #roomReply button{background:#fff!important;color:#125f6d!important;border:1px solid #bcd4d9!important}
+#room.active #roomStage,#room.active #roomArtifact,#room.active #roomCanvas,#room.active #roomForeground,#room.active #roomMemory,#room.active #roomHint,#room.active #roomFlash,#room.active #roomConfidence{display:none!important}
+#room.active .roomControlsToggle{position:absolute!important;bottom:24px!important;right:28px!important;top:auto!important;left:auto!important;z-index:10!important;background:#fff!important;color:#184d58!important;border:1px solid #bfd0d5!important;border-radius:10px!important;padding:12px 18px!important}
+#room.active #roomActions{position:absolute!important;bottom:76px!important;right:28px!important;left:auto!important;top:auto!important;z-index:11!important;background:#fff!important;border:1px solid #d4e1e4!important;border-radius:12px!important;box-shadow:0 15px 42px #1a364322!important;max-width:330px!important}
+#room.active #roomActions button{color:#154e5c!important;background:#f4f8f9!important;border:1px solid #d5e4e8!important}
+@media(max-width:900px){#room.view.active{display:flex!important;flex-direction:column!important;padding:76px 14px 88px!important;gap:12px!important}#room.active #roomVideo{height:38vh!important;min-height:240px!important;max-height:380px!important;flex-shrink:0!important}#room.active #roomMind{height:auto!important;min-height:340px!important;max-height:none!important;padding:18px!important;flex:1!important}#room.active .roomHUD{left:24px!important;top:92px!important;max-width:calc(100% - 48px)!important;padding:20px!important}#room.active .roomHUD h1{font-size:36px!important}#room.active .roomControlsToggle{bottom:18px!important;right:14px!important}#room.active #roomActions{right:14px!important;bottom:68px!important}}
