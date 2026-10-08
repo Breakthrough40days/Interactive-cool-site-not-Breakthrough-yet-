@@ -1,8 +1,8 @@
 // Modern local perception layer: MediaPipe Tasks Vision 1.0.1.
 // Uses model-native face blendshapes and gesture classification instead of
 // hand-written landmark thresholds wherever a trained signal exists.
-const VISION='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm';
-const WASM='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm';
+const VISION='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/+esm';
+const WASM='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm';
 const FACE='https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 const GESTURE='https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task';
 const POSE='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
@@ -29,6 +29,7 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
  let face,gesture,pose,lastVideoTime=-1,lastFace='',lastGesture='',faceFrames=0,gestureFrames=0,lastFaceAt=0,lastGestureAt=0,ready=false,faceSamples=[],faceBase=null,lastPoseRun=0;const stable=new Map();
  const composer=window.RoomEventComposer?new window.RoomEventComposer.EventComposer({emit:x=>onObservation?.(x),knownMotifs}):null;const emit=(kind,text,confidence,detail={})=>{if(confidence<.68)return;onObservation?.({kind,text,confidence,detail,at:performance.now()})};const held=(key,on,need=3)=>{let n=stable.get(key)||0;n=on?Math.min(need+2,n+1):Math.max(0,n-2);stable.set(key,n);return n===need};
  try{
+  onStatus?.('Loading advanced face, hand and body models…');
   const mp=await import(/* @vite-ignore */VISION);
   const vision=await mp.FilesetResolver.forVisionTasks(WASM);
   const opts={runningMode:'VIDEO',numFaces:1,minFaceDetectionConfidence:.55,minFacePresenceConfidence:.55,minTrackingConfidence:.55,outputFaceBlendshapes:true,outputFacialTransformationMatrixes:true};
@@ -166,7 +167,7 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
   if(!ready||!video||video.readyState<2||video.currentTime===lastVideoTime)return;
   lastVideoTime=video.currentTime;
   try{
-   const fr=face?face.detectForVideo(video,now):{faceBlendshapes:[],faceLandmarks:[]},cats=fr.faceBlendshapes?.[0]?.categories||[],map=Object.fromEntries(cats.map(x=>[x.categoryName,x.score]));
+   let fr={faceBlendshapes:[],faceLandmarks:[]};if(face){try{fr=face.detectForVideo(video,now)}catch(err){onStatus?.('FACE FRAME FAILED: '+String(err?.message||err).slice(0,100))}}const cats=fr.faceBlendshapes?.[0]?.categories||[],map=Object.fromEntries(cats.map(x=>[x.categoryName,x.score]));
    if(fr.faceLandmarks?.[0]){onFace?.({landmarks:fr.faceLandmarks[0],blendshapes:map});interpretFace(fr.faceLandmarks[0],map)}else onFace?.({landmarks:null,blendshapes:{}});
    if(cats.length){
     const [name,score]=topFace(map);const facePacket={name,score,blendshapes:map,landmarks:fr.faceLandmarks?.[0],matrix:fr.facialTransformationMatrixes?.[0]};onFace?.(facePacket);composer?.push('face',{features:map,landmarks:facePacket.landmarks,matrix:facePacket.matrix},now);
@@ -181,7 +182,7 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
    }
    if(pose&&now-lastPoseRun>90){
     lastPoseRun=now;
-    const pr=pose.detectForVideo(video,now);
+    let pr={landmarks:[]};try{pr=pose.detectForVideo(video,now)}catch(err){onStatus?.('BODY FRAME FAILED: '+String(err?.message||err).slice(0,100))}
     const p=pr.landmarks?.[0];
     onPose?.({landmarks:p||null});if(p){
      composer?.push('pose',{landmarks:p},now);
@@ -220,7 +221,7 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
      poseState.centerY=cy;
     }
    }
-   const gr=gesture?gesture.recognizeForVideo(video,now):{landmarks:[],gestures:[]};onHands?.(gr);interpretHands(gr.landmarks,now);composer?.push('hands',{landmarks:gr.landmarks,gestures:gr.gestures},now);
+   let gr={landmarks:[],gestures:[]};if(gesture){try{gr=gesture.recognizeForVideo(video,now)}catch(err){onStatus?.('HAND FRAME FAILED: '+String(err?.message||err).slice(0,100))}}onHands?.(gr);interpretHands(gr.landmarks,now);composer?.push('hands',{landmarks:gr.landmarks,gestures:gr.gestures},now);
    // Count extended fingers using joint geometry, with stability and conservative confidence.
    const fingerCounts=(gr.landmarks||[]).map(h=>{
     if(!h||h.length<21)return null;
