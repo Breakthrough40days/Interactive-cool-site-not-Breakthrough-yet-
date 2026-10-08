@@ -63,6 +63,19 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
  };
  const fingerNames=['thumb','index','middle','ring','little'];
  const articulationHistory=[[],[]];
+ const jointHistory=new Map();
+ const jointAngle=(a,b,c)=>{const ux=a.x-b.x,uy=a.y-b.y,vx=c.x-b.x,vy=c.y-b.y;const dot=ux*vx+uy*vy;return Math.acos(Math.max(-1,Math.min(1,dot/(Math.hypot(ux,uy)*Math.hypot(vx,vy)||1))))*180/Math.PI};
+ const analyzeJoints=(hand,slot,now)=>{
+  const names=['index','middle','ring','little'];
+  for(let i=0;i<4;i++){
+   const base=5+i*4,pip=base+1,dip=base+2,tip=base+3;
+   for(const [joint,prev,middle,next] of [['middle',base,pip,dip],['tip',pip,dip,tip]]){
+    const angle=jointAngle(hand[prev],hand[middle],hand[next]);const key=slot+'-'+i+'-'+joint;const old=jointHistory.get(key);
+    if(old&&now-old.at<500&&Math.abs(angle-old.angle)>13){const action=angle<old.angle?'bending':'straightening';stableSignal('joint-'+key+'-'+action,true,'Your '+names[i]+' finger is '+action+' at its '+joint+' joint.',{gesture:'joint-motion',finger:names[i],joint,action,angle:Math.round(angle),hand:slot},.73,2)}
+    jointHistory.set(key,{angle:old?old.angle*.35+angle*.65:angle,at:now});
+   }
+  }
+ };
  const analyzeFingers=(hand,slot,now)=>{
   const width=Math.max(.015,distance(hand[5],hand[17]));
   const extended=[distance(hand[4],hand[5])>width*.9];
@@ -87,7 +100,7 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
   const hands=landmarks||[];
   hands.forEach((h,i)=>{
    if(!h||h.length<21)return;
-   analyzeFingers(h,i,now);
+   analyzeFingers(h,i,now);analyzeJoints(h,i,now);
    const palm=distance(h[5],h[17])||.1;
    const fingers=[[8,6,5],[12,10,9],[16,14,13],[20,18,17]].map(([tip,pip,mcp])=>distance(h[tip],h[mcp])>distance(h[pip],h[mcp])*1.5);
    const extended=fingers.filter(Boolean).length;
