@@ -32,12 +32,11 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
   const mp=await import(/* @vite-ignore */VISION);
   const vision=await mp.FilesetResolver.forVisionTasks(WASM);
   const opts={runningMode:'VIDEO',numFaces:1,minFaceDetectionConfidence:.55,minFacePresenceConfidence:.55,minTrackingConfidence:.55,outputFaceBlendshapes:true,outputFacialTransformationMatrixes:true};
-  try{face=await mp.FaceLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:FACE,delegate:'GPU'},...opts})}
-  catch{face=await mp.FaceLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:FACE,delegate:'CPU'},...opts})}
+  try{face=await mp.FaceLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:FACE,delegate:'GPU'},...opts})}catch{try{face=await mp.FaceLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:FACE,delegate:'CPU'},...opts})}catch(err){face=null;onStatus?.('FACE MODEL FAILED: '+err.message)}}
   const gopts={runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.55,minHandPresenceConfidence:.55,minTrackingConfidence:.55};
   try{gesture=await mp.GestureRecognizer.createFromOptions(vision,{baseOptions:{modelAssetPath:GESTURE,delegate:'GPU'},...gopts})}
-  catch{gesture=await mp.GestureRecognizer.createFromOptions(vision,{baseOptions:{modelAssetPath:GESTURE,delegate:'CPU'},...gopts})}
-  try{pose=await mp.PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:POSE,delegate:'GPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.55})}catch{try{pose=await mp.PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:POSE,delegate:'CPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.55})}catch{pose=null}}ready=true;onStatus?.('MODEL PERCEPTION READY');
+  catch{try{gesture=await mp.GestureRecognizer.createFromOptions(vision,{baseOptions:{modelAssetPath:GESTURE,delegate:'CPU'},...gopts})}catch(err){gesture=null;onStatus?.('HAND MODEL FAILED: '+err.message)}}
+  try{pose=await mp.PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:POSE,delegate:'GPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.55})}catch{try{pose=await mp.PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:POSE,delegate:'CPU'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.55,minPosePresenceConfidence:.55,minTrackingConfidence:.55})}catch{pose=null}}ready=!!(face||gesture||pose);onStatus?.('TRACKING: '+[face?'face':'',gesture?'hands':'',pose?'body':''].filter(Boolean).join(', '));
  }catch(err){onStatus?.('MODEL PERCEPTION UNAVAILABLE');return {ready:false,process:()=>{},close:()=>{},error:err}}
 
  const heartScore=(hands)=>{
@@ -56,7 +55,8 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
   if(!ready||!video||video.readyState<2||video.currentTime===lastVideoTime)return;
   lastVideoTime=video.currentTime;
   try{
-   const fr=face.detectForVideo(video,now),cats=fr.faceBlendshapes?.[0]?.categories||[],map=Object.fromEntries(cats.map(x=>[x.categoryName,x.score]));
+   const fr=face?face.detectForVideo(video,now):{faceBlendshapes:[],faceLandmarks:[]},cats=fr.faceBlendshapes?.[0]?.categories||[],map=Object.fromEntries(cats.map(x=>[x.categoryName,x.score]));
+   if(fr.faceLandmarks?.[0])onFace?.({landmarks:fr.faceLandmarks[0],blendshapes:map});else onFace?.({landmarks:null,blendshapes:{}});
    if(cats.length){
     const [name,score]=topFace(map);const facePacket={name,score,blendshapes:map,landmarks:fr.faceLandmarks?.[0],matrix:fr.facialTransformationMatrixes?.[0]};onFace?.(facePacket);composer?.push('face',{features:map,landmarks:facePacket.landmarks,matrix:facePacket.matrix},now);
     if(!faceBase){faceSamples.push(map);if(faceSamples.length>=36){faceBase={};for(const k of Object.keys(map)){const vals=faceSamples.map(x=>x[k]||0).sort((a,b)=>a-b),trim=vals.slice(5,-5);faceBase[k]=trim.reduce((s,x)=>s+x,0)/Math.max(1,trim.length)}}}
@@ -68,11 +68,11 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
     let lm=fr.faceLandmarks?.[0];if(lm){let left=lm[234],right=lm[454],nose=lm[1],eyesY=(lm[33].y+lm[263].y)/2,chin=lm[152],fw=Math.max(.01,Math.abs(right.x-left.x)),fh=Math.max(.01,Math.abs(chin.y-eyesY)),yaw=((nose.x-(left.x+right.x)/2)/fw),pitch=(nose.y-eyesY)/fh;if(held('head-left',yaw<-.10,4))emit('face','You turned your head.',.76,{blendshape:'head-turn'});if(held('head-right',yaw>.10,4))emit('face','You turned your head.',.76,{blendshape:'head-turn'});if(held('head-down',pitch>.44,4))emit('face','You tilted your head down.',.72,{blendshape:'head-down'})}
     }
    }
-   if(pose&&now-lastPoseRun>125){
+   if(pose&&now-lastPoseRun>90){
     lastPoseRun=now;
     const pr=pose.detectForVideo(video,now);
     const p=pr.landmarks?.[0];
-    if(p){onPose?.({landmarks:p});
+    onPose?.({landmarks:p||null});if(p){
      composer?.push('pose',{landmarks:p},now);
      const shoulders=(p[11].y+p[12].y)/2;
      const wrists=[p[15],p[16]];
@@ -109,7 +109,7 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
      poseState.centerY=cy;
     }
    }
-   const gr=gesture.recognizeForVideo(video,now);onHands?.(gr);composer?.push('hands',{landmarks:gr.landmarks,gestures:gr.gestures},now);
+   const gr=gesture?gesture.recognizeForVideo(video,now):{landmarks:[],gestures:[]};onHands?.(gr);composer?.push('hands',{landmarks:gr.landmarks,gestures:gr.gestures},now);
    // Count extended fingers using joint geometry, with stability and conservative confidence.
    const fingerCounts=(gr.landmarks||[]).map(h=>{
     if(!h||h.length<21)return null;
