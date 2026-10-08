@@ -10,12 +10,15 @@ try{
  const failures=[];page.on('pageerror',e=>failures.push(e.message));
  await page.goto('http://127.0.0.1:4184/#room',{waitUntil:'domcontentloaded'});
  await page.waitForSelector('#roomVideo');
+ await page.click('#roomStart');
+ await page.waitForFunction(()=>document.querySelector('#roomTracking')?.parentElement===document.body,{timeout:45000}).catch(()=>{});
  const geometry=await page.evaluate(()=>{
   const video=document.querySelector('#roomVideo'),canvas=document.querySelector('#roomTracking');
   const vr=video.getBoundingClientRect(),cr=canvas.getBoundingClientRect();
   return {videoTransform:getComputedStyle(video).transform,canvasTransform:getComputedStyle(canvas).transform,canvasPosition:getComputedStyle(canvas).position,video:vr.toJSON(),canvas:cr.toJSON()};
  });
  if(geometry.videoTransform!==geometry.canvasTransform)throw new Error('Camera and landmark canvas mirror transforms differ: '+JSON.stringify(geometry));
+ if(Math.abs(geometry.video.left-geometry.canvas.left)>2||Math.abs(geometry.video.top-geometry.canvas.top)>2||Math.abs(geometry.video.width-geometry.canvas.width)>2||Math.abs(geometry.video.height-geometry.canvas.height)>2)throw new Error('Landmark overlay is not on top of camera: '+JSON.stringify(geometry));
  const loaded=await page.evaluate(async()=>{
   const states=[];const result=await window.RoomPerception.createPerception({onStatus:x=>states.push(x)});
   const answer={ready:result.ready,capabilities:result.capabilities||{},states};result.close();return answer;
