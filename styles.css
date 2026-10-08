@@ -264,3 +264,8 @@ body:has(#room.active) header .logo,body:has(#room.active) header nav a{color:#1
 #room.active #roomActions{position:absolute!important;bottom:76px!important;right:28px!important;left:auto!important;top:auto!important;z-index:11!important;background:#fff!important;border:1px solid #d4e1e4!important;border-radius:12px!important;box-shadow:0 15px 42px #1a364322!important;max-width:330px!important}
 #room.active #roomActions button{color:#154e5c!important;background:#f4f8f9!important;border:1px solid #d5e4e8!important}
 @media(max-width:900px){#room.view.active{display:flex!important;flex-direction:column!important;padding:76px 14px 88px!important;gap:12px!important}#room.active #roomVideo{height:38vh!important;min-height:240px!important;max-height:380px!important;flex-shrink:0!important}#room.active #roomMind{height:auto!important;min-height:340px!important;max-height:none!important;padding:18px!important;flex:1!important}#room.active .roomHUD{left:24px!important;top:92px!important;max-width:calc(100% - 48px)!important;padding:20px!important}#room.active .roomHUD h1{font-size:36px!important}#room.active .roomControlsToggle{bottom:18px!important;right:14px!important}#room.active #roomActions{right:14px!important;bottom:68px!important}}
+
+/* Preserve the vision processing canvases' dimensions even when visuals are hidden */
+#room.active #roomCanvas,#room.active #roomForeground{display:block!important;opacity:0!important;pointer-events:none!important;visibility:hidden!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important}
+#room.active #roomVideo{filter:brightness(1.32) contrast(1.05)!important}
+#room.active #roomMic:disabled{opacity:.65;cursor:not-allowed}
