@@ -51,12 +51,87 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
  };
  let heartFrames=0,lastHeartAt=0;let lastFingerLabel='',fingerFrames=0,lastFingerAt=0;
  let poseState={armCount:0,lean:'',shoulder:0,centerX:0,centerY:0,lastMove:0};
+
+ // Continuous multimodal interpretation. Emit only changes that persist across frames.
+ const multimodal={last:new Map(),previousHands:[],previousFace:null,previousPose:null};
+ const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+ const stableSignal=(key,active,label,detail={},confidence=.78,frames=3)=>{
+  let s=multimodal.last.get(key)||{frames:0,lastAt:0};
+  s.frames=active?Math.min(frames+2,s.frames+1):Math.max(0,s.frames-2);
+  if(s.frames===frames&&performance.now()-s.lastAt>2100){s.lastAt=performance.now();emit('movement',label,confidence,detail)}
+  multimodal.last.set(key,s);
+ };
+ const interpretHands=(landmarks,now)=>{
+  const hands=landmarks||[];
+  hands.forEach((h,i)=>{
+   if(!h||h.length<21)return;
+   const palm=distance(h[5],h[17])||.1;
+   const fingers=[[8,6,5],[12,10,9],[16,14,13],[20,18,17]].map(([tip,pip,mcp])=>distance(h[tip],h[mcp])>distance(h[pip],h[mcp])*1.5);
+   const extended=fingers.filter(Boolean).length;
+   const pinch=distance(h[4],h[8])/palm;
+   const spread=distance(h[8],h[20])/palm;
+   const palmY=h[9].y;
+   const previous=multimodal.previousHands[i];
+   const velocity=previous?Math.hypot(h[9].x-previous.x,h[9].y-previous.y)/Math.max(.016,(now-previous.at)/1000):0;
+   stableSignal('pinch-'+i,pinch<.35,'You pinched your thumb and index finger together.',{gesture:'pinch',hand:i},.83);
+   stableSignal('spread-'+i,spread>2.25&&extended>=3,'You spread your fingers wide.',{gesture:'fingers-spread',hand:i});
+   stableSignal('index-'+i,fingers[0]&&!fingers[1]&&!fingers[2]&&!fingers[3],'You held up your index finger.',{gesture:'index-only',hand:i});
+   stableSignal('peace-'+i,fingers[0]&&fingers[1]&&!fingers[2]&&!fingers[3],'You held up two fingers.',{gesture:'two-fingers',hand:i});
+   stableSignal('raised-hand-'+i,palmY<.22,'Your hand is near the top of the camera view.',{gesture:'hand-raised',hand:i},.72);
+   stableSignal('moving-hand-'+i,velocity>.55,'You moved your hand quickly.',{gesture:'fast-hand-motion',hand:i},.72,2);
+   multimodal.previousHands[i]={x:h[9].x,y:h[9].y,at:now};
+  });
+  multimodal.previousHands.length=hands.length;
+  if(hands.length===2){
+   const gap=distance(hands[0][9],hands[1][9]);
+   stableSignal('hands-together',gap<.18,'You brought your hands close together.',{gesture:'hands-together'});
+   stableSignal('hands-apart',gap>.62,'You moved your hands far apart.',{gesture:'hands-apart'});
+   stableSignal('hands-crossed',Math.abs(hands[0][9].x-hands[1][9].x)<.09&&Math.abs(hands[0][9].y-hands[1][9].y)<.18,'Your hands crossed in front of you.',{gesture:'hands-crossed'},.7);
+  }
+ };
+ const interpretFace=(landmarks,blendshapes)=>{
+  if(!landmarks?.length)return;
+  const m=blendshapes||{},both=(a,b)=>((m[a]||0)+(m[b]||0))/2;
+  stableSignal('blink',both('eyeBlinkLeft','eyeBlinkRight')>.55,'You blinked.',{face:'blink'},.82,2);
+  stableSignal('wink-left',(m.eyeBlinkLeft||0)>.62&&(m.eyeBlinkRight||0)<.25,'You closed one eye.',{face:'one-eye-closed'},.78,2);
+  stableSignal('wink-right',(m.eyeBlinkRight||0)>.62&&(m.eyeBlinkLeft||0)<.25,'You closed one eye.',{face:'one-eye-closed'},.78,2);
+  stableSignal('smile-now',both('mouthSmileLeft','mouthSmileRight')>.5,'You smiled.',{face:'smile'});
+  stableSignal('mouth-open-now',(m.jawOpen||0)>.52,'You opened your mouth.',{face:'mouth-open'});
+  stableSignal('eyebrows-now',(m.browInnerUp||0)>.48,'You raised your eyebrows.',{face:'eyebrows-raised'});
+  const nose=landmarks[1],eyes=landmarks[168],chin=landmarks[152];
+  if(nose&&eyes&&chin){
+   const delta=multimodal.previousFace;
+   if(delta){const dy=nose.y-delta.y,dx=nose.x-delta.x;
+    stableSignal('head-up',dy<-.012,'You lifted your head.',{face:'head-up'},.7,2);
+    stableSignal('head-down-motion',dy>.012,'You lowered your head.',{face:'head-down'},.7,2);
+    stableSignal('head-side',Math.abs(dx)>.018,'You moved your head sideways.',{face:'head-sideways'},.7,2);
+   }
+   multimodal.previousFace={x:nose.x,y:nose.y};
+  }
+ };
+ const interpretPose=landmarks=>{
+  if(!landmarks?.length)return;
+  const p=landmarks,visible=i=>(p[i]?.visibility??1)>.45;
+  if(![11,12,23,24].every(visible))return;
+  const shoulderY=(p[11].y+p[12].y)/2,hipY=(p[23].y+p[24].y)/2;
+  const leftUp=visible(15)&&p[15].y<shoulderY-.09,rightUp=visible(16)&&p[16].y<shoulderY-.09;
+  stableSignal('both-arms-up',leftUp&&rightUp,'You raised both arms.',{pose:'both-arms-up'});
+  stableSignal('one-arm-up',leftUp!==rightUp,'You raised one arm.',{pose:'one-arm-up'});
+  stableSignal('arms-down',visible(15)&&visible(16)&&p[15].y>hipY&&p[16].y>hipY,'Both of your arms are down.',{pose:'arms-down'},.73);
+  const width=Math.max(.08,distance(p[11],p[12])),lean=((p[11].x+p[12].x)-(p[23].x+p[24].x))/2/width;
+  stableSignal('lean-left',lean<-.28,'You leaned sideways.',{pose:'lean-sideways'},.72);
+  stableSignal('lean-right',lean>.28,'You leaned sideways.',{pose:'lean-sideways'},.72);
+  if(visible(15)&&visible(16)){
+   stableSignal('hands-over-head',p[15].y<Math.min(p[11].y,p[12].y)-.2&&p[16].y<Math.min(p[11].y,p[12].y)-.2,'You put both hands above your head.',{pose:'hands-over-head'});
+  }
+ };
+
  const process=(video,now=performance.now())=>{
   if(!ready||!video||video.readyState<2||video.currentTime===lastVideoTime)return;
   lastVideoTime=video.currentTime;
   try{
    const fr=face?face.detectForVideo(video,now):{faceBlendshapes:[],faceLandmarks:[]},cats=fr.faceBlendshapes?.[0]?.categories||[],map=Object.fromEntries(cats.map(x=>[x.categoryName,x.score]));
-   if(fr.faceLandmarks?.[0])onFace?.({landmarks:fr.faceLandmarks[0],blendshapes:map});else onFace?.({landmarks:null,blendshapes:{}});
+   if(fr.faceLandmarks?.[0]){onFace?.({landmarks:fr.faceLandmarks[0],blendshapes:map});interpretFace(fr.faceLandmarks[0],map)}else onFace?.({landmarks:null,blendshapes:{}});
    if(cats.length){
     const [name,score]=topFace(map);const facePacket={name,score,blendshapes:map,landmarks:fr.faceLandmarks?.[0],matrix:fr.facialTransformationMatrixes?.[0]};onFace?.(facePacket);composer?.push('face',{features:map,landmarks:facePacket.landmarks,matrix:facePacket.matrix},now);
     if(!faceBase){faceSamples.push(map);if(faceSamples.length>=36){faceBase={};for(const k of Object.keys(map)){const vals=faceSamples.map(x=>x[k]||0).sort((a,b)=>a-b),trim=vals.slice(5,-5);faceBase[k]=trim.reduce((s,x)=>s+x,0)/Math.max(1,trim.length)}}}
@@ -109,7 +184,7 @@ async function createPerception({onObservation,onHands,onFace,onPose,onStatus,kn
      poseState.centerY=cy;
     }
    }
-   const gr=gesture?gesture.recognizeForVideo(video,now):{landmarks:[],gestures:[]};onHands?.(gr);composer?.push('hands',{landmarks:gr.landmarks,gestures:gr.gestures},now);
+   const gr=gesture?gesture.recognizeForVideo(video,now):{landmarks:[],gestures:[]};onHands?.(gr);interpretHands(gr.landmarks,now);composer?.push('hands',{landmarks:gr.landmarks,gestures:gr.gestures},now);
    // Count extended fingers using joint geometry, with stability and conservative confidence.
    const fingerCounts=(gr.landmarks||[]).map(h=>{
     if(!h||h.length<21)return null;
